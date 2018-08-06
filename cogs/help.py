@@ -22,8 +22,8 @@ class Help:
                                        "**Path of Building preview:** If a pastebin link is posted in a chat the bot can see"
                                        "and is a valid pob pastebin, the bot will reply with a detailed preview.\n"
                                        'To get help or more information on a specific command, use:\n'
-                                       f'`{bot_prefix}help cmd|command <command name>` for a specific command.\n'
-                                       f'`{bot_prefix}help <command name>` is also a shortcut for the above.',
+                                       f'`@zana help cmd|command <command name>` for a specific command.\n'
+                                       f'`@zana help <command name>` is also a shortcut for the above.',
                            color=self.color)
 
         # This can't go in the init because help isn't loaded last & thus misses some commands
