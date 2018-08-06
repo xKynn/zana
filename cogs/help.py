@@ -17,13 +17,16 @@ class Help:
             return await ctx.invoke(self.cmd('help command'), cmd_name=command_name)
 
         em = discord.Embed(title='Help',
-                           description='**Linking items:** The bot links items for you in chat if you decorate item names with'
+                           description='**Linking items:** The bot links items for you in chat if you decorate item names with '
                                        "[[]] for example [[Xoph's Blood]]\n"
-                                       "**Path of Building preview:** If a pastebin link is posted in a chat the bot can see"
+                                       "**Path of Building preview:** If a pastebin link is posted in a chat the bot can see "
                                        "and is a valid pob pastebin, the bot will reply with a detailed preview.\n"
                                        'To get help or more information on a specific command, use:\n'
                                        f'`{bot_prefix}help cmd|command <command name>` for a specific command.\n'
-                                       f'`{bot_prefix}help <command name>` is also a shortcut for the above.',
+                                       f'`{bot_prefix}help <command name>` is also a shortcut for the above.\n'
+                                       '**Permissions:** The permissions required to function :-\n'
+                                       '`Send Messages`, `Manage Messages`, `Embed Links`, `Read Message History`,'
+                                       '`Attach Files`, `Read Message History`, `Add Reactions`, `Use External Emojis`',
                            color=self.color)
 
         # This can't go in the init because help isn't loaded last & thus misses some commands
