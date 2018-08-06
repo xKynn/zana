@@ -17,20 +17,17 @@ class Help:
             return await ctx.invoke(self.cmd('help command'), cmd_name=command_name)
 
         em = discord.Embed(title='Help',
-                           description='Below is a list of command categories.\n'
-                                       f'To get help or more information on a specific category or command, use:\n'
-                                       f'`{bot_prefix}help cat|category <category name>` for a category OR\n'
+                           description='**Linking items:** The bot links items for you in chat if you decorate item names with'
+                                       "[[]] for example [[Xoph's Blood]]\n"
+                                       "**Path of Building preview:** If a pastebin link is posted in a chat the bot can see"
+                                       "and is a valid pob pastebin, the bot will reply with a detailed preview.\n"
+                                       'To get help or more information on a specific command, use:\n'
                                        f'`{bot_prefix}help cmd|command <command name>` for a specific command.\n'
                                        f'`{bot_prefix}help <command name>` is also a shortcut for the above.',
                            color=self.color)
 
         # This can't go in the init because help isn't loaded last & thus misses some commands
-        cog_name_list = sorted(self.bot.cogs)
-
-        col1 = cog_name_list[:len(cog_name_list) // 2]
-        col2 = cog_name_list[len(cog_name_list) // 2:]
-        em.add_field(name='Categories', value='\n'.join(col1))
-        em.add_field(name='Categories (cont.)', value='\n'.join(col2))
+        em.add_field(name="Commands", value=f"charinfo")
         await ctx.send(embed=em)
 
     @help.command(name='category', aliases=['categories', 'ctg'])

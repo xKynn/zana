@@ -33,7 +33,7 @@ class Zana(commands.Bot):
 
         # Embed color
         # Keeping with user_color convention to make migration from Watashi easier
-        self.user_color = discord.Color.dark_orange()
+        self.user_color = 0x781D1D
 
     def run(self):
         super().run(self.config['token'])

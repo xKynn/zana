@@ -23,6 +23,7 @@ class PathOfExile:
 
     @commands.command()
     async def link(self, ctx):
+        """ Link items decorated with [[]] in chat """
         item_matches = self.re.findall(ctx.message.content)
         if not item_matches:
             return
@@ -67,7 +68,7 @@ class PathOfExile:
         await ctx.channel.send(file=File(image_fp, filename='image.png'))
 
     async def _twoslot_pob(self, equip, itemtype):
-        embed = Embed(color=0xb04040)
+        embed = Embed(color=self.bot.user_color)
         if f'{itemtype} 1' in equip or f'{itemtype} 2' in equip:
             if f'{itemtype} 1' in equip and f'{itemtype} 2' in equip:
                 rwp1 = utils.ItemRender(equip[f'{itemtype} 1']['object'].rarity)
@@ -110,7 +111,7 @@ class PathOfExile:
             return None
 
     async def _oneslot_pob(self, equip, itemtype):
-        embed = Embed(color=0xb04040)
+        embed = Embed(color=self.bot.user_color)
         if itemtype in equip:
             wp_n = itemtype
             rwp = utils.ItemRender(equip[wp_n]['object'].rarity)
@@ -134,7 +135,7 @@ class PathOfExile:
             return None
 
     def _jewels_pob(self, equip):
-        embed = Embed(color=0xb04040)
+        embed = Embed(color=self.bot.user_color)
         if 'jewels' in equip:
             for jewel in equip['jewels']:
                 name = jewel['base'] if jewel['rarity'].lower() != 'unique' else f"{jewel['name']} {jewel['base']}"
@@ -146,7 +147,7 @@ class PathOfExile:
             return None
 
     def _gem_groups(self, equip):
-        embed = Embed(color=0xb04040)
+        embed = Embed(color=self.bot.user_color)
         if 'gem_groups' in equip:
             for gem_title in equip['gem_groups']:
                 name = gem_title
@@ -160,14 +161,14 @@ class PathOfExile:
             return None
 
     async def _info_dict(self, stats, pob=True):
-        info = Embed(color=0xb04040)
+        info = Embed(color=self.bot.user_color)
         if pob:
             if stats['ascendancy'] != "None":
                 info.title = f"Level {stats['level']} {stats['class']}: {stats['ascendancy']}"
             else:
                 info.title = f"Level {stats['level']} {stats['class']}"
         else:
-            info.title = f"Level {stats['level']} {stats['class']}"
+            info.title = f"Level {stats['level']} {stats['class']} (Click to open skill tree)"
             info.description = f"{stats['league']} League"
 
         if pob:
@@ -282,6 +283,7 @@ class PathOfExile:
 
     @commands.command()
     async def charinfo(self, ctx, account, character):
+        """ Fetch character info for provided account and character """
         async with self.bot.ses.get('https://www.pathofexile.com/character-window'
                                     f'/get-items?accountName={account}&character={character}') as resp:
             items_json = await resp.json()
@@ -297,10 +299,11 @@ class PathOfExile:
         await self.make_responsive_embed(stats, ctx, False)
     @commands.command()
     async def pob(self, ctx):
+        """ Fetch character info for valid pob pastebin links posted in chat """
         paste_keys = pastebin.fetch_paste_key(ctx.message.content)
         if not paste_keys: return
         xml = None
-        paste_key = random.choice(paste_keys)
+        paste_key = paste_keys[0]
         try:
             xml = await self.bot.loop.run_in_executor(None, pastebin.get_as_xml, paste_key)
         except:
