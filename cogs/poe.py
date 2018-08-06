@@ -121,8 +121,8 @@ class PathOfExile:
             file = File(image_fp, filename=f"{itemtype.lower().replace(' ','')}.png")
             # upload = await self.bot.dump_channel.send(file=file)
             # embed.set_image(url=upload.attachments[0].url)
-
-            if 'gems' in equip[wp_n]:
+            #print(equip[wp_n])
+            if 'gems' in equip[wp_n] and equip[wp_n]['gems']:
                 val_list = []
                 for gem in equip[wp_n]['gems']:
                     val_list.append(f" - {gem['level']}/{gem['quality']} {gem['name']}")
@@ -236,14 +236,16 @@ class PathOfExile:
         files = []
         weapons_dict = await self._twoslot_pob(stats['equipped'], 'Weapon')
         rings_dict = await self._twoslot_pob(stats['equipped'], 'Ring')
-        amulet_dict = await self._oneslot_pob(stats['equipped'], 'Amulet')
         armor_dict = await self._oneslot_pob(stats['equipped'], 'Body Armour')
+        helmet_dict = await self._oneslot_pob(stats['equipped'], 'Helmet')
+        amulet_dict = await self._oneslot_pob(stats['equipped'], 'Amulet')
         gloves_dict = await self._oneslot_pob(stats['equipped'], 'Gloves')
         boots_dict = await self._oneslot_pob(stats['equipped'], 'Boots')
         belt_dict = await self._oneslot_pob(stats['equipped'], 'Belt')
         jewels_dict = self._jewels_pob(stats)
         gem_groups_dict = self._gem_groups(stats['equipped'])
         responsive_dict['info'] = await self._info_dict(stats, pob)
+        #print(responsive_dict['info'].fields)
         if weapons_dict:
             responsive_dict['weapon'] = weapons_dict['embed']
             files.append(weapons_dict['file'])
@@ -256,6 +258,9 @@ class PathOfExile:
         if armor_dict:
             responsive_dict['bodyarmour'] = armor_dict['embed']
             files.append(armor_dict['file'])
+        if helmet_dict:
+            responsive_dict['helmet'] = helmet_dict['embed']
+            files.append(helmet_dict['file'])
         if gloves_dict:
             responsive_dict['gloves'] = gloves_dict['embed']
             files.append(gloves_dict['file'])
@@ -275,7 +280,7 @@ class PathOfExile:
         await responsive_embed(self.bot, responsive_dict, ctx)
 
     @commands.command()
-    async def charinfo(self, account, character, *, ctx):
+    async def charinfo(self, ctx, account, character):
         async with self.bot.ses.get('https://www.pathofexile.com/character-window'
                                     f'/get-items?accountName={account}&character={character}') as resp:
             items_json = await resp.json()
@@ -283,7 +288,8 @@ class PathOfExile:
                                     f'/get-passive-skills?accountName={account}&character={character}') as resp:
             tree_json = await resp.json()
         stats = utils.parse_poe_char_api(items_json, self.client)
-        tree_link, keystones, asc_nodes = utils.poe_skill_tree(tree_json['hashes'], items_json['character']['class'])
+        tree_link, keystones, asc_nodes = utils.poe_skill_tree(tree_json['hashes'], items_json['character']['class'],
+                                                               return_asc=True, return_keystones=True)
         stats['keystones'] = keystones
         stats['tree_link'] = tree_link
         stats['asc_nodes'] = asc_nodes
