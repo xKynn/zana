@@ -11,7 +11,7 @@ class Help:
     @commands.group(invoke_without_command=True)
     async def help(self, ctx, *, command_name: str=None):
         """ Shows the possible help categories """
-        bot_prefix = ctx.prefix
+        bot_prefix = '@Zana '
         # Shortcut to command search
         if command_name is not None:
             return await ctx.invoke(self.cmd('help command'), cmd_name=command_name)
@@ -22,8 +22,8 @@ class Help:
                                        "**Path of Building preview:** If a pastebin link is posted in a chat the bot can see"
                                        "and is a valid pob pastebin, the bot will reply with a detailed preview.\n"
                                        'To get help or more information on a specific command, use:\n'
-                                       f'`@zana help cmd|command <command name>` for a specific command.\n'
-                                       f'`@zana help <command name>` is also a shortcut for the above.',
+                                       f'`{bot_prefix}help cmd|command <command name>` for a specific command.\n'
+                                       f'`{bot_prefix}help <command name>` is also a shortcut for the above.',
                            color=self.color)
 
         # This can't go in the init because help isn't loaded last & thus misses some commands
@@ -33,7 +33,7 @@ class Help:
     @help.command(name='category', aliases=['categories', 'ctg'])
     async def help_categories(self, ctx, *, category_name: str=None):
         """ Get brief help for each command in a specific category """
-        bot_prefix = ctx.prefix
+        bot_prefix = '@Zana '
         # Handle no input
         if category_name is None:
             return await ctx.error('Category must be provided.')
@@ -55,7 +55,7 @@ class Help:
     @help.command(name='command', aliases=['cmd', 'commands'])
     async def help_command(self, ctx, *, cmd_name: str=None):
         """ Sends help for a specific command """
-        bot_prefix = ctx.prefix
+        bot_prefix = '@Zana '
         # Get command object
         cmd_obj = self.cmd(cmd_name)
 
