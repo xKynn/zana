@@ -19,7 +19,7 @@ class Zana(commands.Bot):
         # TODO:
         # - Dynamic prefixes (per guild)
         # - Migrate help command from Watashi
-        super().__init__(command_prefix=commands.when_mentioned_or(None), description=self.description,
+        super().__init__(command_prefix=commands.when_mentioned, description=self.description,
                          pm_help=None, *args, **kwargs)
 
         # Startup extensions (none yet)
@@ -62,6 +62,8 @@ class Zana(commands.Bot):
                 print(f'Loaded extension: {ext}')
         self.find_command = self.get_command('link')
         self.pob_command = self.get_command('pob')
+        self.dump_channel = self.get_channel(475526519255728128)
+        self.ses = aiohttp.ClientSession()
         print(f'Client logged in at {self.start_time}.\n'
               f'{self.user.name}\n'
               f'{self.user.id}\n'
