@@ -8,6 +8,7 @@ class POEClientException(Exception):
 
 @cached(cache)
 def find_one(name: str, client, loop):
+    print(name)
     if 1:
         item = client.find_items({'name': name})
         if item:

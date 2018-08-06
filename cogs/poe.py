@@ -27,6 +27,7 @@ class PathOfExile:
         if not item_matches:
             return
         tasks = []
+        print(item_matches)
         for item in item_matches:
             tasks.append(self.bot.loop.run_in_executor(None,
                                                        find_one, item.strip('[[').strip(']]'),

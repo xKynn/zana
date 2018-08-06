@@ -40,11 +40,13 @@ class Zana(commands.Bot):
 
     # Utilise custom context for error messaging etc.
     async def on_message(self, message):
+        if message.author.id == self.user.id:
+            return
         await self.wait_until_ready()
         ctx = await self.get_context(message, cls=ZanaContext)
         if '[[' in ctx.message.content and ']]' in ctx.message.content:
             await self.find_command.invoke(ctx)
-        if 'pastebin.com/' in ctx.message.content:
+        elif 'pastebin.com/' in ctx.message.content:
             await self.pob_command.invoke(ctx)
         else:
             await self.invoke(ctx)
