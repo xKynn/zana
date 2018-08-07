@@ -276,6 +276,9 @@ class PathOfExile:
             responsive_dict['jewels'] = jewels_dict
         if gem_groups_dict:
             responsive_dict['gems'] = gem_groups_dict
+        for key in responsive_dict:
+            if responsive_dict[key].value == '':
+                responsive_dict[key].value = "None"
         upload = await self.bot.dump_channel.send(files=files)
         for attachment in upload.attachments:
             responsive_dict[attachment.filename.split('.')[0]].set_image(url=attachment.url)
