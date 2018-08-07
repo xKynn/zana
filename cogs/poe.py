@@ -30,7 +30,7 @@ class PathOfExile:
             return
         tasks = []
         print(item_matches)
-        for item in item_matches:
+        for item in item_matches[:5]:
             tasks.append(self.bot.loop.run_in_executor(None,
                                                        find_one, item.strip('[[').strip(']]'),
                                                        self.client, self.bot.loop))
@@ -42,6 +42,7 @@ class PathOfExile:
                 flavor = 'prophecy'
             elif 'gem' in result.tags:
                 flavor = 'gem'
+                print(result.vendors)
             else:
                 flavor = result.rarity
             r = utils.ItemRender(flavor)
