@@ -173,41 +173,41 @@ class PathOfExile:
 
         if pob:
             info.description = \
-            f"__Attributes:__ Str: {stats['str']} **|** "\
+            f"𝐀𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬: Str: {stats['str']} **|** "\
             f"Dex: {stats['dex']} **|** "\
             f"Int: {stats['int']}\n"\
-            f"__Charges:__ Power: {stats['power_charges']} **|** " \
+            f"𝐂𝐡𝐚𝐫𝐠𝐞𝐬𝘴: Power: {stats['power_charges']} **|** " \
             f"Frenzy: {stats['frenzy_charges']} **|** " \
             f"Endurance: {stats['endurance_charges']}"
 
             offensive_stats_text =\
-            f"__Total DPS:__ {stats['total_dps']}\n"\
-            f"__Crit Chance:__ {stats['crit_chance']}\n"\
-            f"__Effective Crit Chance:__ {stats['crit_chance']}\n"\
-            f"__Chance to Hit:__ {stats['chance_to_hit']}%"
+            f"𝐓𝐨𝐭𝐚𝐥 𝐃𝐏𝐒: {stats['total_dps']}\n"\
+            f"𝐂𝐫𝐢𝐭 𝐂𝐡𝐚𝐧𝐜𝐞: {stats['crit_chance']}\n"\
+            f"𝐄𝐟𝐟𝐞𝐜𝐭𝐢𝐯𝐞 𝐂𝐫𝐢𝐭 𝐂𝐡𝐚𝐧𝐜𝐞: {stats['crit_chance']}\n"\
+            f"𝐂𝐡𝐚𝐧𝐜𝐞 𝐭𝐨 𝐇𝐢𝐭: {stats['chance_to_hit']}%"
             info.add_field(name="Offense", value=offensive_stats_text)
 
             defensive_stats_text =\
-            f"__Life:__ {stats['life']}\n"\
-            f"__Life Regen:__ {stats['life_regen']}\n"\
-            f"__Energy Shield:__ {stats['es']}\n"\
-            f"__ES Regen:__ {stats['es_regen']}\n"\
-            f"__Degen:__ {stats['degen']}"
+            f"𝐋𝐢𝐟𝐞: {stats['life']}\n"\
+            f"𝐋𝐢𝐟𝐞 𝐑𝐞𝐠𝐞𝐧: {stats['life_regen']}\n"\
+            f"𝐄𝐧𝐞𝐫𝐠𝐲 𝐒𝐡𝐢𝐞𝐥𝐝: {stats['es']}\n"\
+            f"𝐄𝐒 𝐑𝐞𝐠𝐞𝐧: {stats['es_regen']}\n"\
+            f"𝐄𝐯𝐚𝐬𝐢𝐨𝐧: {stats['degen']}"
             info.add_field(name="Defense", value=defensive_stats_text, inline=True)
 
             mitigation_stats_text=\
-            f"__Evasion:__ {stats['evasion']}\n"\
-            f"__Block:__ {stats['block']}%\n"\
-            f"__Spell Block:__ {stats['spell_block']}%\n"\
-            f"__Dodge:__ {stats['dodge']}%\n"\
-            f"__Spell Dodge:__ {stats['spell_dodge']}%"
+            f"𝐄𝐯𝐚𝐬𝐢𝐨𝐧: {stats['evasion']}\n"\
+            f"𝐁𝐥𝐨𝐜𝐤: {stats['block']}%\n"\
+            f"𝐒𝐩𝐞𝐥𝐥 𝐁𝐥𝐨𝐜𝐤: {stats['spell_block']}%\n"\
+            f"𝐃𝐨𝐝𝐠𝐞: {stats['dodge']}%\n"\
+            f"𝐒𝐩𝐞𝐥𝐥 𝐃𝐨𝐝𝐠𝐞: {stats['spell_dodge']}%"
             info.add_field(name="Mitigation", value=mitigation_stats_text, inline=True)
 
             resistances_text = \
-            f"__Fire:__ {stats['fire_res']}%\n"\
-            f"__Cold:__ {stats['cold_res']}%\n" \
-            f"__Lightning:__ {stats['light_res']}%\n" \
-            f"__Chaos:__ {stats['chaos_res']}%"
+            f"𝐅𝐢𝐫𝐞: {stats['fire_res']}%\n"\
+            f"𝐂𝐨𝐥𝐝: {stats['cold_res']}%\n" \
+            f"𝐋𝐢𝐠𝐡𝐭𝐧𝐢𝐧𝐠: {stats['light_res']}%\n" \
+            f"𝐂𝐡𝐚𝐨𝐬: {stats['chaos_res']}%"
             info.add_field(name="Resistances", value=resistances_text, inline=True)
             async def tree_text(tree, dict):
                 url = await self.bot.loop.run_in_executor(None, shrink_tree_url, dict[tree])
