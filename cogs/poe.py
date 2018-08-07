@@ -277,9 +277,9 @@ class PathOfExile:
         if gem_groups_dict:
             responsive_dict['gems'] = gem_groups_dict
         for key in responsive_dict:
-            for field in responsive_dict[key].fields:
+            for index, field in enumerate(responsive_dict[key].fields):
                 if field.value == '':
-                    field.value = "None"
+                    responsive_dict[key].set_field_at(index, name=field.name, value="None", inline=field.inline)
         upload = await self.bot.dump_channel.send(files=files)
         for attachment in upload.attachments:
             responsive_dict[attachment.filename.split('.')[0]].set_image(url=attachment.url)
