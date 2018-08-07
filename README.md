@@ -1,6 +1,10 @@
 # zana
 A discord bot based on PoE.py - http://github.com/xKynn/PoE.py  
 You can invite my hosted version from [here](https://discordapp.com/api/oauth2/authorize?client_id=474597240854282241&permissions=387136&scope=bot)
+#### Shameless Donation Link Plug
+As a college student i can only work on these fun projects in my free time, i would love if you can help me out!
+<a href='https://ko-fi.com/D1D6EXXV' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://az743702.vo.msecnd.net/cdn/kofi2.png?v=0' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>  
+
 ### Things it can do
 1. Link items in chat, syntax is similar to the reddit bot, i.e enclose item name inside [[]]
   - It can link anything poe related that is an ingame "Item", this means, hideout doodads, prophecies, gems, items, currency
