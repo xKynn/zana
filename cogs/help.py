@@ -30,8 +30,11 @@ class Help:
                            color=self.color)
 
         # This can't go in the init because help isn't loaded last & thus misses some commands
-        em.add_field(name="Commands", value=f"charinfo")
-        await ctx.send(embed=em)
+        em.add_field(name="Commands", value='\n -'.join(c.name for c in self.bot.commands if c.name not in ['pob', 'link']))
+        try:
+            await ctx.send(embed=em)
+        except:
+            await ctx.send("`Embed Links` permission is required to see the help!")
 
     @help.command(name='category', aliases=['categories', 'ctg'])
     async def help_categories(self, ctx, *, category_name: str=None):

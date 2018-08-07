@@ -1,11 +1,11 @@
 import aiohttp
-import discord
 import json
 
 from datetime import datetime
 from discord.ext import commands
 from pathlib import Path
 from utils.custom_context import ZanaContext
+from utils.server_config import ServerConfig
 
 class Zana(commands.Bot):
     def __init__(self, *args, **kwargs):
@@ -34,6 +34,9 @@ class Zana(commands.Bot):
         # Embed color
         # Keeping with user_color convention to make migration from Watashi easier
         self.user_color = 0x781D1D
+
+        self.server_config = ServerConfig('server_config.json')
+        print(self.server_config.conf)
 
     def run(self):
         super().run(self.config['token'])

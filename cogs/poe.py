@@ -15,6 +15,7 @@ from utils.class_icons import class_icons
 from utils.responsive_embed import responsive_embed
 
 
+
 class PathOfExile:
     def __init__(self, bot):
         self.bot = bot
@@ -176,9 +177,12 @@ class PathOfExile:
             f"𝐀𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬: Str: {stats['str']} **|** "\
             f"Dex: {stats['dex']} **|** "\
             f"Int: {stats['int']}\n"\
-            f"𝐂𝐡𝐚𝐫𝐠𝐞𝐬𝘴: Power: {stats['power_charges']} **|** " \
+            f"𝐂𝐡𝐚𝐫𝐠𝐞𝐬: Power: {stats['power_charges']} **|** " \
             f"Frenzy: {stats['frenzy_charges']} **|** " \
             f"Endurance: {stats['endurance_charges']}"
+
+            if stats['bandit'] != "None":
+                info.description += f"\n𝐁𝐚𝐧𝐝𝐢𝐭: {stats['bandit']}"
 
             offensive_stats_text =\
             f"𝐓𝐨𝐭𝐚𝐥 𝐃𝐏𝐒: {stats['total_dps']}\n"\
@@ -286,8 +290,10 @@ class PathOfExile:
         await responsive_embed(self.bot, responsive_dict, ctx)
 
     @commands.command()
-    async def charinfo(self, ctx, account, character):
+    async def charinfo(self, ctx, account=None, character=None):
         """ Fetch character info for provided account and character """
+        if not account or not character:
+            return await ctx.error("Incorrect number of arguments supplied!\n`@Zana charinfo <accountname> <charname>")
         async with self.bot.ses.get('https://www.pathofexile.com/character-window'
                                     f'/get-items?accountName={account}&character={character}') as resp:
             items_json = await resp.json()
@@ -301,9 +307,12 @@ class PathOfExile:
         stats['tree_link'] = tree_link
         stats['asc_nodes'] = asc_nodes
         await self.make_responsive_embed(stats, ctx, False)
+
     @commands.command()
     async def pob(self, ctx):
         """ Fetch character info for valid pob pastebin links posted in chat """
+        if str(ctx.guild.id) in ctx.bot.server_config.conf and ctx.bot.server_config.conf[str(ctx.guild.id)]['disable_pastebin']:
+            return
         paste_keys = pastebin.fetch_paste_key(ctx.message.content)
         if not paste_keys: return
         xml = None
