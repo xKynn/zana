@@ -1,6 +1,7 @@
 # zana
 A discord bot based on PoE.py - http://github.com/xKynn/PoE.py  
 You can invite my hosted version from [here](https://discordapp.com/api/oauth2/authorize?client_id=474597240854282241&permissions=387136&scope=bot)
+You can join the zana support-ish server [here](https://discord.gg/hUWQ5fJ)
 #### Shameless Donation Link Plug
 As a college student i can only work on these fun projects in my free time, i would love if you can help me out!
 <a href='https://ko-fi.com/D1D6EXXV' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://az743702.vo.msecnd.net/cdn/kofi2.png?v=0' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>  
