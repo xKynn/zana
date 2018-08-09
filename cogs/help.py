@@ -18,15 +18,16 @@ class Help:
 
         em = discord.Embed(title='Help',
                            description='**Linking items:** The bot links items for you in chat if you decorate item names with '
-                                       "[[]] for example [[Xoph's Blood]]\n"
+                                       "[[]] for example [[Xoph's Blood]]\n\n"
                                        "**Path of Building preview:** If a pastebin link is posted in a chat the bot can see "
-                                       "and is a valid pob pastebin, the bot will reply with a detailed preview.\n"
-                                       'To get help or more information on a specific command, use:\n'
-                                       f'`{bot_prefix}help cmd|command <command name>` for a specific command.\n'
-                                       f'`{bot_prefix}help <command name>` is also a shortcut for the above.\n'
+                                       "and is a valid pob pastebin, the bot will reply with a detailed preview.\n\n"
                                        '**Permissions:** The permissions required to function :-\n'
                                        '`Send Messages`, `Manage Messages`, `Embed Links`, `Read Message History`,'
-                                       '`Attach Files`, `Read Message History`, `Add Reactions`, `Use External Emojis`',
+                                       '`Attach Files`, `Read Message History`, `Add Reactions`, `Use External Emojis`\n'
+                                       '--\nTo get help or more information on a specific command, use:\n'
+                                       f'`{bot_prefix}help cmd|command <command name>` for a specific command.\n'
+                                       f'`{bot_prefix}help <command name>` is also a shortcut for the above.\n'
+                                       'You can also join the semi-support server [here](https://discord.gg/hUWQ5fJ)',
                            color=self.color)
 
         # This can't go in the init because help isn't loaded last & thus misses some commands
@@ -53,7 +54,7 @@ class Help:
             return await ctx.error(f'`{category_name}` is not a category.')
 
         em = discord.Embed(title=category_name, color=self.color)
-        em.add_field(name='Commands', value='\n'.join([f'\u2022 `{bot_prefix}{x.name}` - {x.short_doc}'
+        em.add_field(name='Commands', value=' -'+'\n'.join([f'\u2022 `{bot_prefix}{x.name}` - {x.short_doc}'
                                                        for x in self.bot.get_cog_commands(category_name)]))
 
         await ctx.send(embed=em)

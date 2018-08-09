@@ -43,10 +43,29 @@ class PathOfExile:
             elif 'gem' in result.tags:
                 flavor = 'gem'
                 print(result.vendors)
+            elif 'divination_card' in result.tags:
+                r = utils.ItemRender('unique')
+                images.append(r.render_divcard(result))
+                try:
+                    reward = await self.bot.loop.run_in_executor(None,
+                                                                 find_one, result.reward,
+                                                                 self.client, self.bot.loop)
+                    if reward.base == "Prophecy":
+                        i_flavor = 'prophecy'
+                    elif 'gem' in reward.tags:
+                        i_flavor = 'gem'
+                    else:
+                        i_flavor = reward.rarity
+                    i_render = utils.ItemRender(i_flavor)
+                    images.append(i_render.render(reward))
+                except:
+                    pass
+                continue
             else:
                 flavor = result.rarity
-            r = utils.ItemRender(flavor)
-            images.append(r.render(result))
+            if 'divination_card' not in result.tags:
+                r = utils.ItemRender(flavor)
+                images.append(r.render(result))
         if len(images) > 1:
             box = [0, 0]
             for image in images:
@@ -67,7 +86,10 @@ class PathOfExile:
         img.save(image_fp, 'png')
         image_fp.seek(0)
         print("Image ready")
-        await ctx.channel.send(file=File(image_fp, filename='image.png'))
+        try:
+            await ctx.channel.send(file=File(image_fp, filename='image.png'))
+        except:
+            await ctx.error("`Attach Files` permission required", delete_after=2)
 
     async def _twoslot_pob(self, equip, itemtype):
         embed = Embed(color=self.bot.user_color)
@@ -326,6 +348,26 @@ class PathOfExile:
         stats = await self.bot.loop.run_in_executor(None, cache_pob_xml, xml, self.client)
         await self.make_responsive_embed(stats, ctx)
 
+    @commands.command()
+    async def convert(self, ctx):
+        """ Convert an item copied from PoB or PoETradeMacro to the Zana version """
+        try:
+            pob_item = utils.parse_pob_item(ctx.message.content)
+        except:
+            print(ctx.message.content)
+            return
+        d = {}
+        await self.bot.loop.run_in_executor(None, utils._get_wiki_base, pob_item, d, self.client, "Chat Item")
+        renderer = utils.ItemRender(d['Chat Item'].rarity)
+        img = renderer.render(d['Chat Item'])
+        image_fp = BytesIO()
+        img.save(image_fp, 'png')
+        image_fp.seek(0)
+        file = File(image_fp, filename=f"converted.png")
+        try:
+            await ctx.send(file=file)
+        except:
+            await ctx.error("`Attach Files` permission required", delete_after=2)
 
 def setup(bot):
     bot.add_cog(PathOfExile(bot))

@@ -51,6 +51,8 @@ class Zana(commands.Bot):
             await self.find_command.invoke(ctx)
         elif 'pastebin.com/' in ctx.message.content:
             await self.pob_command.invoke(ctx)
+        elif ctx.message.content.startswith("Rarity:"):
+            await self.convert_command.invoke(ctx)
         else:
             await self.invoke(ctx)
 
@@ -67,6 +69,7 @@ class Zana(commands.Bot):
                 print(f'Loaded extension: {ext}')
         self.find_command = self.get_command('link')
         self.pob_command = self.get_command('pob')
+        self.convert_command = self.get_command('convert')
         self.dump_channel = self.get_channel(475526519255728128)
         self.ses = aiohttp.ClientSession()
         print(f'Client logged in at {self.start_time}.\n'
