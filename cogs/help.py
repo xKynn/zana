@@ -21,6 +21,9 @@ class Help:
                                        "[[]] for example [[Xoph's Blood]]\n\n"
                                        "**Path of Building preview:** If a pastebin link is posted in a chat the bot can see "
                                        "and is a valid pob pastebin, the bot will reply with a detailed preview.\n\n"
+                                       '**Item Paste Conversion:** If you copy an item from PoB or PoETradeMacro, pasting'
+                                       " if you paste it in chat, the bot will convert it into the bot's image form. Nee"
+                                       "ds `Manage Messages` to delete user's post"
                                        '**Permissions:** The permissions required to function :-\n'
                                        '`Send Messages`, `Manage Messages`, `Embed Links`, `Read Message History`,'
                                        '`Attach Files`, `Read Message History`, `Add Reactions`, `Use External Emojis`\n'

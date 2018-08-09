@@ -53,6 +53,10 @@ class Zana(commands.Bot):
             await self.pob_command.invoke(ctx)
         elif ctx.message.content.startswith("Rarity:"):
             await self.convert_command.invoke(ctx)
+            try:
+                await ctx.message.delete()
+            except:
+                await ctx.error("`Manage Messages` required to delete", delete_after=2)
         else:
             await self.invoke(ctx)
 

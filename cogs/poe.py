@@ -37,12 +37,20 @@ class PathOfExile:
         results = await asyncio.gather(*tasks)
         results = [x for x in results if x]
         images = []
+        meta = []
         for result in results:
             if result.base == "Prophecy":
                 flavor = 'prophecy'
             elif 'gem' in result.tags:
                 flavor = 'gem'
                 print(result.vendors)
+                dt = {'name': f"{result.name} vendors"}
+                venstr = ""
+                for vendor in result.vendors:
+                    classes = "All Classes" if vendor['classes'] == '' else vendor['classes']
+                    venstr += f"**Act {vendor['act']} :** {classes}\n"
+                dt['value'] = venstr
+                meta.append(dt)
             elif 'divination_card' in result.tags:
                 r = utils.ItemRender('unique')
                 images.append(r.render_divcard(result))
@@ -86,8 +94,15 @@ class PathOfExile:
         img.save(image_fp, 'png')
         image_fp.seek(0)
         print("Image ready")
+        if meta:
+            em = Embed(color=self.bot.user_color)
+            for m in meta:
+                em.add_field(name=m['name'], value=m['value'] or "None", inline=True)
+        else:
+            em = None
         try:
-            await ctx.channel.send(file=File(image_fp, filename='image.png'))
+            await ctx.channel.send(file=File(image_fp, filename='image.png'),
+                                   embed=em)
         except:
             await ctx.error("`Attach Files` permission required", delete_after=2)
 
@@ -351,9 +366,9 @@ class PathOfExile:
     @commands.command()
     async def convert(self, ctx):
         """ Convert an item copied from PoB or PoETradeMacro to the Zana version """
-        try:
+        if 1:
             pob_item = utils.parse_pob_item(ctx.message.content)
-        except:
+        else:
             print(ctx.message.content)
             return
         d = {}
