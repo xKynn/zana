@@ -457,10 +457,12 @@ class PathOfExile:
                     if randomized_stat == 0:
                         continue
                     match_dict[match] = randomized_stat
+                    new_impl = implicit
                 for rep in match_dict:
-                    new_impl = implicit.replace(rep, str(match_dict[rep]))
+                    new_impl = new_impl.replace(rep, str(match_dict[rep]))
                     if match_dict[rep] < 0:
-                        new_impl = implicit.replace('+', '')
+                        new_impl = new_impl.replace('+', '')
+                        new_impl = new_impl.replace('increased', 'reduced')
                 decided_implicits.append(new_impl)
             else:
                 decided_implicits.append(implicit)
@@ -487,6 +489,7 @@ class PathOfExile:
                     new_expl = new_expl.replace(rep, str(match_dict[rep]))
                     if match_dict[rep] < 0:
                         new_expl = new_expl.replace('+', '')
+                        new_expl = new_expl.replace('increased', 'reduced')
                 decided_explicits.append(new_expl)
             else:
                 decided_explicits.append(explicit)
