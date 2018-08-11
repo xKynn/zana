@@ -36,6 +36,8 @@ class Help:
                                        'Ko-Fi/Paypal: [Link](https://ko-fi.com/D1D6EXXV)',
                            color=self.color)
 
+        em.set_footer(text="Contact me at Demo#7645")
+
         # This can't go in the init because help isn't loaded last & thus misses some commands
         em.add_field(name="Commands", value=' • '+'\n • '.join(f"***{c.name}*** - {c.short_doc}" for c in self.bot.commands if
                                                                c.name not in ['pob', 'link', 'convert']))
