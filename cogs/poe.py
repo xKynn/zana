@@ -30,12 +30,18 @@ class PathOfExile:
             return
         tasks = []
         print(item_matches)
+
+        # Because my poe lib is actually completely blocking, i wrote a find_once func and
+        # I just run instances of find_ones in executor + gather
         for item in item_matches[:5]:
             tasks.append(self.bot.loop.run_in_executor(None,
                                                        find_one, item.strip('[[').strip(']]'),
                                                        self.client, self.bot.loop))
         results = await asyncio.gather(*tasks)
+
+        # Results are returned as None for invalid items from find_one, so remove None-s
         results = [x for x in results if x]
+
         images = []
         meta = []
         for result in results:
@@ -52,6 +58,8 @@ class PathOfExile:
                 dt['value'] = venstr
                 meta.append(dt)
             elif 'divination_card' in result.tags:
+                # Lib has a different render function for div cards as they don't fit the standard stats and sorting
+                # method, might change in the future but would be extremely unneat code-wise.
                 r = utils.ItemRender('unique')
                 images.append(r.render_divcard(result))
                 try:
@@ -74,6 +82,11 @@ class PathOfExile:
             if 'divination_card' not in result.tags:
                 r = utils.ItemRender(flavor)
                 images.append(r.render(result))
+
+        # Stitch images together, traditionally 5 images tops, but as div cards can feature their reward as an image
+        # Possible max images can be 10
+        # R.I.P that one time where we stitched headhunters for image width of 69700
+
         if len(images) > 1:
             box = [0, 0]
             for image in images:
@@ -94,6 +107,8 @@ class PathOfExile:
         img.save(image_fp, 'png')
         image_fp.seek(0)
         print("Image ready")
+
+        # Meta basically only used for gems to show vendor info, might add more stuff later, good base to build on
         if meta:
             em = Embed(color=self.bot.user_color)
             for m in meta:
@@ -106,6 +121,10 @@ class PathOfExile:
         except:
             await ctx.error("`Attach Files` permission required", delete_after=2)
 
+
+    # So I've designated items 2 categories: twoslot and oneslot
+    # Weapons and rings are 2 slots, basically same type twice, so i can stitch them together in one embed
+    # Oneslot is basic render and fetch image and gems
     async def _twoslot_pob(self, equip, itemtype):
         embed = Embed(color=self.bot.user_color)
         if f'{itemtype} 1' in equip or f'{itemtype} 2' in equip:
@@ -173,6 +192,7 @@ class PathOfExile:
         else:
             return None
 
+    # Jewels embed making, if its unique include the name as well, rare or magic jewel names don't matter really
     def _jewels_pob(self, equip):
         embed = Embed(color=self.bot.user_color)
         if 'jewels' in equip:
@@ -185,6 +205,8 @@ class PathOfExile:
         else:
             return None
 
+    # gem_groups exists because people will at times in PoB not slot a gem group into an item on the player
+    # so these are say a 6 link you could put maybe in your weapon or your chest? basically unslotted
     def _gem_groups(self, equip):
         embed = Embed(color=self.bot.user_color)
         if 'gem_groups' in equip:
@@ -199,6 +221,7 @@ class PathOfExile:
         else:
             return None
 
+    # Make standard first page of embed, differes for pob and charinfo, as the bool kwarg says
     async def _info_dict(self, stats, pob=True):
         info = Embed(color=self.bot.user_color)
         if pob:
@@ -251,6 +274,8 @@ class PathOfExile:
             f"𝐋𝐢𝐠𝐡𝐭𝐧𝐢𝐧𝐠: {stats['light_res']}%\n" \
             f"𝐂𝐡𝐚𝐨𝐬: {stats['chaos_res']}%"
             info.add_field(name="Resistances", value=resistances_text, inline=True)
+
+            # poeurl shortener is QUITE blocking, needs to be done this way or made into async but as long as it works
             async def tree_text(tree, dict):
                 url = await self.bot.loop.run_in_executor(None, shrink_tree_url, dict[tree])
                 return f"[{tree}]({url})"
@@ -274,8 +299,9 @@ class PathOfExile:
         info.set_thumbnail(url=icon_url)
         return info
 
+    # The sauce that uploads images to a dump channel in discord to use it as free unlimited image hosting
+    # Then link those images in my embeds fluently and form responsive_embed
     async def make_responsive_embed(self, stats, ctx, pob=True):
-        embed_dict = {}
         responsive_dict = {}
         files = []
         weapons_dict = await self._twoslot_pob(stats['equipped'], 'Weapon')
@@ -333,6 +359,7 @@ class PathOfExile:
         if not character:
             return await ctx.error("Incorrect number of arguments supplied!\n`@Zana charinfo <charname>")
 
+        # A reddit user told me about this, pretty sweet
         async with self.bot.ses.get('https://www.pathofexile.com/character-window/get-account-name-'
                                     f'by-character?character={character}') as resp:
             account_d = await resp.json()
@@ -361,6 +388,7 @@ class PathOfExile:
         """ Fetch character info for valid pob pastebin links posted in chat """
         if str(ctx.guild.id) in ctx.bot.server_config.conf and ctx.bot.server_config.conf[str(ctx.guild.id)]['disable_pastebin']:
             return
+        # Pastebin util is from another discord pob parsing bot, why re-invent the wheel i guess?
         paste_keys = pastebin.fetch_paste_key(ctx.message.content)
         if not paste_keys: return
         xml = None
@@ -376,9 +404,11 @@ class PathOfExile:
     @commands.command()
     async def convert(self, ctx):
         """ Convert an item copied from PoB or PoETradeMacro to the Zana version """
-        if 1:
+
+        # Put my PoB item parser to good use
+        try:
             pob_item = utils.parse_pob_item(ctx.message.content)
-        else:
+        except:
             print(ctx.message.content)
             return
         d = {}

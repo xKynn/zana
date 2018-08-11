@@ -1,6 +1,8 @@
 import json
 
 class ServerConfig:
+    """ Wonky class to handle json 'database' lol, but it works well as the bot has to interface with
+    this infrequently"""
     def __init__(self, path):
         self.path = path
         try:

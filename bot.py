@@ -41,7 +41,8 @@ class Zana(commands.Bot):
     def run(self):
         super().run(self.config['token'])
 
-    # Utilise custom context for error messaging etc.
+    # 'on_message' bot what a n00b omg
+    # Only way to link items or provide pob without people requesting it as i wanted this to be a conversation based bot
     async def on_message(self, message):
         if message.author.id == self.user.id:
             return
@@ -56,13 +57,12 @@ class Zana(commands.Bot):
             try:
                 await ctx.message.delete()
             except:
+                # Funny thing is, error is an embed, if someone removes that perm, the error doesn't go through as well
                 await ctx.error("`Manage Messages` required to delete", delete_after=2)
         else:
             await self.invoke(ctx)
 
     async def on_ready(self):
-        if not hasattr(self, 'start_time'):
-            self.start_time = datetime.now()
 
         for ext in self.startup_ext:
             try:
@@ -71,9 +71,13 @@ class Zana(commands.Bot):
                 print(f'Failed to load extension: {ext}\n{e}')
             else:
                 print(f'Loaded extension: {ext}')
+
+        # Gather all commands on_message is going to need
         self.find_command = self.get_command('link')
         self.pob_command = self.get_command('pob')
         self.convert_command = self.get_command('convert')
+
+        # Dump channel where i can upload 10 images at once, get url and serve in embeds freely as i'd like to
         self.dump_channel = self.get_channel(475526519255728128)
         self.ses = aiohttp.ClientSession()
         print(f'Client logged in at {self.start_time}.\n'
