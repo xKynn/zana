@@ -473,7 +473,8 @@ class PathOfExile:
                     if match_dict[rep] < 0:
                         new_impl = new_impl.replace('+', '')
                         new_impl = new_impl.replace('increased', 'reduced')
-                decided_implicits.append(new_impl)
+                if match_dict:
+                    decided_implicits.append(new_impl)
             else:
                 decided_implicits.append(implicit)
 
@@ -500,7 +501,8 @@ class PathOfExile:
                     if match_dict[rep] < 0:
                         new_expl = new_expl.replace('+', '')
                         new_expl = new_expl.replace('increased', 'reduced')
-                decided_explicits.append(new_expl)
+                if match_dict:
+                    decided_explicits.append(new_expl)
             else:
                 decided_explicits.append(explicit)
         escaped_implicits = '<br>'.join(decided_implicits)
