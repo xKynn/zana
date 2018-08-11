@@ -446,7 +446,7 @@ class PathOfExile:
         decided_implicits = []
         decided_explicits = []
         for implicit in implicits:
-            if '(' in implicit and ')' in implicit:
+            if '(' in implicit and ')' in implicit and 'hidden' not in implicit.lower():
                 matches = self.rng.findall(implicit)
                 match_dict = {}
                 for match in matches:
@@ -472,7 +472,7 @@ class PathOfExile:
                 decided_implicits.append(implicit)
 
         for explicit in explicits:
-            if '(' in explicit and ')' in explicit:
+            if '(' in explicit and ')' in explicit and 'hidden' not in explicit.lower():
                 matches = self.rng.findall(explicit)
                 match_dict = {}
                 print(matches)
