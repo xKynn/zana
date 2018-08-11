@@ -1,7 +1,9 @@
 import asyncio
+import copy
 import re
 import random
 import poe.utils as utils
+import time
 
 from discord import File, Embed
 from io import BytesIO
@@ -432,11 +434,13 @@ class PathOfExile:
         if not item:
             return await ctx.error("The correct format to use `roll` is\n`@Zana <itemname>`")
         unique = await self.bot.loop.run_in_executor(None,find_one, item, self.client, self.bot.loop)
+        unique = copy.copy(unique)
         if not unique:
             return await ctx.error(f"Couldn't find {item} on the wiki!")
         if unique.rarity.lower() != 'unique':
             return await ctx.error("You can only roll unique items!")
         base = await self.bot.loop.run_in_executor(None,find_one, unique.base, self.client, self.bot.loop)
+        base = copy.copy(base)
         implicits = utils.unescape_to_list(unique.implicits)
         explicits = utils.unescape_to_list(unique.explicits)
         decided_implicits = []
@@ -530,7 +534,8 @@ class PathOfExile:
         img.save(image_fp, 'png')
         image_fp.seek(0)
         try:
-            await ctx.channel.send(file=File(image_fp, filename='image.png'))
+            f = File(image_fp, filename=f'image{round(time.time())}.png')
+            await ctx.channel.send(file=f)
         except:
             await ctx.error("`Attach Files` permission required")
 def setup(bot):
