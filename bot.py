@@ -80,7 +80,7 @@ class Zana(commands.Bot):
         # Dump channel where i can upload 10 images at once, get url and serve in embeds freely as i'd like to
         self.dump_channel = self.get_channel(475526519255728128)
         self.ses = aiohttp.ClientSession()
-        print(f'Client logged in at {self.start_time}.\n'
+        print(f'Client logged in.\n'
               f'{self.user.name}\n'
               f'{self.user.id}\n'
               '--------------------------')
