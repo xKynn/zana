@@ -328,10 +328,20 @@ class PathOfExile:
         await responsive_embed(self.bot, responsive_dict, ctx)
 
     @commands.command()
-    async def charinfo(self, ctx, account=None, character=None):
+    async def charinfo(self, ctx, character=None):
         """ Fetch character info for provided account and character """
-        if not account or not character:
-            return await ctx.error("Incorrect number of arguments supplied!\n`@Zana charinfo <accountname> <charname>")
+        if not character:
+            return await ctx.error("Incorrect number of arguments supplied!\n`@Zana charinfo <charname>")
+
+        async with self.bot.ses.get('https://www.pathofexile.com/character-window/get-account-name-'
+                                    f'by-character?character={character}') as resp:
+            account_d = await resp.json()
+
+        if not 'accountName' in account_d:
+            return await ctx.error("Invalid character name.")
+        else:
+            account = account_d['accountName']
+
         async with self.bot.ses.get('https://www.pathofexile.com/character-window'
                                     f'/get-items?accountName={account}&character={character}') as resp:
             items_json = await resp.json()

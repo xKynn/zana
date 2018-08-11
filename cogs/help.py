@@ -21,9 +21,9 @@ class Help:
                                        "[[]] for example [[Xoph's Blood]]\n\n"
                                        "**Path of Building preview:** If a pastebin link is posted in a chat the bot can see "
                                        "and is a valid pob pastebin, the bot will reply with a detailed preview.\n\n"
-                                       '**Item Paste Conversion:** If you copy an item from PoB or PoETradeMacro, pasting'
+                                       '**Item Paste Conversion:** If you copy an item from PoB or PoETradeMacro, and'
                                        " if you paste it in chat, the bot will convert it into the bot's image form. Nee"
-                                       "ds `Manage Messages` to delete user's post"
+                                       "ds `Manage Messages` to delete user's post\n"
                                        '**Permissions:** The permissions required to function :-\n'
                                        '`Send Messages`, `Manage Messages`, `Embed Links`, `Read Message History`,'
                                        '`Attach Files`, `Read Message History`, `Add Reactions`, `Use External Emojis`\n'
@@ -34,7 +34,7 @@ class Help:
                            color=self.color)
 
         # This can't go in the init because help isn't loaded last & thus misses some commands
-        em.add_field(name="Commands", value='\n -'.join(c.name for c in self.bot.commands if c.name not in ['pob', 'link']))
+        em.add_field(name="Commands", value=' - '+'\n - '.join(c.name for c in self.bot.commands if c.name not in ['pob', 'link']))
         try:
             await ctx.send(embed=em)
         except:
