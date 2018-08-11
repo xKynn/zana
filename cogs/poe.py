@@ -27,6 +27,12 @@ class PathOfExile:
         self.rng = re.compile('\(.+?\)')
 
     @commands.command()
+    async def invite(self, ctx):
+        """ Invite the bot. """
+        em = Embed(title="Invite Zana", color=self.bot.user_color, url="https://discordapp.com/api/oauth2/authorize?client_id=474597240854282241&permissions=387136&scope=bot")
+        await ctx.send(embed=em)
+        
+    @commands.command()
     async def link(self, ctx):
         """ Link items decorated with [[]] in chat """
         item_matches = self.re.findall(ctx.message.content)
