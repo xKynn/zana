@@ -10,7 +10,7 @@ class Config:
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def disable_pastebin(self, ctx):
-        """ Disable preview of posted pastebin links, required Administrator perms"""
+        """ Disable preview of posted pastebin links, requires Administrator perms"""
         conf = self.bot.server_config.conf
         if str(ctx.guild.id) not in conf:
             conf[str(ctx.guild.id)] = {}
@@ -21,7 +21,7 @@ class Config:
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def enable_pastebin(self, ctx):
-        """ Enable preview of posted pastebin links, required Administrator perms"""
+        """ Enable preview of posted pastebin links, requires Administrator perms"""
         conf = self.bot.server_config.conf
         if str(ctx.guild.id) not in conf:
             conf[str(ctx.guild.id)] = {}

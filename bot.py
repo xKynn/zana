@@ -53,12 +53,15 @@ class Zana(commands.Bot):
         elif 'pastebin.com/' in ctx.message.content:
             await self.pob_command.invoke(ctx)
         elif ctx.message.content.startswith("Rarity:"):
-            await self.convert_command.invoke(ctx)
             try:
-                await ctx.message.delete()
+                await self.convert_command.invoke(ctx)
+                try:
+                    await ctx.message.delete()
+                except:
+                    # Funny thing is, error is an embed, if someone removes that perm, the error doesn't go through as well
+                    await ctx.error("`Manage Messages` required to delete", delete_after=2)
             except:
-                # Funny thing is, error is an embed, if someone removes that perm, the error doesn't go through as well
-                await ctx.error("`Manage Messages` required to delete", delete_after=2)
+                pass
         else:
             await self.invoke(ctx)
 

@@ -13,6 +13,7 @@ from utils import pastebin
 from utils.poeurl import shrink_tree_url
 from utils.class_icons import class_icons
 from utils.responsive_embed import responsive_embed
+from poe import models
 
 
 
@@ -21,6 +22,7 @@ class PathOfExile:
         self.bot = bot
         self.client = Client()
         self.re = re.compile(r'\[\[[^\]]+\]\]')
+        self.rng = re.compile('\(.+?\)')
 
     @commands.command()
     async def link(self, ctx):
@@ -424,5 +426,109 @@ class PathOfExile:
         except:
             await ctx.error("`Attach Files` permission required", delete_after=2)
 
+    @commands.command()
+    async def roll(self, ctx, * ,item: str=None):
+        """ Roll any Unique item and test your luck! """
+        if not item:
+            return await ctx.error("The correct format to use `roll` is\n`@Zana <itemname>`")
+        unique = await self.bot.loop.run_in_executor(None,find_one, item, self.client, self.bot.loop)
+        if not unique:
+            return await ctx.error(f"Couldn't find {item} on the wiki!")
+        if unique.rarity.lower() != 'unique':
+            return await ctx.error("You can only roll unique items!")
+        base = await self.bot.loop.run_in_executor(None,find_one, unique.base, self.client, self.bot.loop)
+        implicits = utils.unescape_to_list(unique.implicits)
+        explicits = utils.unescape_to_list(unique.explicits)
+        decided_implicits = []
+        decided_explicits = []
+        for implicit in implicits:
+            if '(' in implicit and ')' in implicit:
+                matches = self.rng.findall(implicit)
+                match_dict = {}
+                for match in matches:
+                    stat = match[1:-1]
+                    separator = stat.find('-', 1)
+                    range_start = stat[:separator]
+                    range_end = stat[separator+1:]
+                    if '.' in range_start or '.' in range_end:
+                        randomized_stat = random.uniform(float(range_start), float(range_end))
+                    else:
+                        randomized_stat = random.randint(int(range_start), int(range_end))
+                    if randomized_stat == 0:
+                        continue
+                    match_dict[match] = randomized_stat
+                for rep in match_dict:
+                    new_impl = implicit.replace(rep, str(match_dict[rep]))
+                    if match_dict[rep] < 0:
+                        new_impl = implicit.replace('+', '')
+                decided_implicits.append(new_impl)
+            else:
+                decided_implicits.append(implicit)
+
+        for explicit in explicits:
+            if '(' in explicit and ')' in explicit:
+                matches = self.rng.findall(explicit)
+                match_dict = {}
+                print(matches)
+                for match in matches:
+                    stat = match[1:-1]
+                    separator = stat.find('-', 1)
+                    range_start = stat[:separator]
+                    range_end = stat[separator+1:]
+                    if '.' in range_start or '.' in range_end:
+                        randomized_stat = random.uniform(float(range_start), float(range_end))
+                    else:
+                        randomized_stat = random.randint(int(range_start), int(range_end))
+                    if randomized_stat == 0:
+                        continue
+                    match_dict[match] = randomized_stat
+                new_expl = explicit
+                for rep in match_dict:
+                    new_expl = new_expl.replace(rep, str(match_dict[rep]))
+                    if match_dict[rep] < 0:
+                        new_expl = new_expl.replace('+', '')
+                decided_explicits.append(new_expl)
+            else:
+                decided_explicits.append(explicit)
+        escaped_implicits = '<br>'.join(decided_implicits)
+        escaped_explicits = '<br>'.join(decided_explicits)
+        base.implicits = escaped_implicits
+        unique.implicits = escaped_implicits
+        base.explicits = escaped_explicits
+        unique.explicits = escaped_explicits
+        print(unique.tags)
+        try:
+            utils.modify_base_stats(base)
+            if 'weapon' in unique.tags:
+                print("is wep")
+                unique.attack_speed = base.attack_speed
+                unique.critical_chance = base.critical_chance
+                unique.range = base.range
+                unique.fire_min = base.fire_min
+                unique.fire_max = base.fire_max
+                unique.cold_min = base.cold_min
+                unique.cold_max = base.cold_max
+                unique.lightning_min = base.lightning_min
+                unique.lightning_max = base.lightning_max
+                unique.chaos_min = base.chaos_min
+                unique.chaos_max = base.chaos_max
+                unique.physical_min = base.physical_min
+                unique.physical_max = base.physical_max
+            else:
+                unique.armour = base.armour
+                unique.evasion = base.evasion
+                unique.energy_shield = base.energy_shield
+
+        except AttributeError:
+            pass
+        renderer = utils.ItemRender('unique')
+        img = renderer.render(unique)
+        image_fp = BytesIO()
+        img.save(image_fp, 'png')
+        image_fp.seek(0)
+        try:
+            await ctx.channel.send(file=File(image_fp, filename='image.png'))
+        except:
+            await ctx.error("`Attach Files` permission required")
 def setup(bot):
     bot.add_cog(PathOfExile(bot))

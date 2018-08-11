@@ -23,19 +23,21 @@ class Help:
                                        "and is a valid pob pastebin, the bot will reply with a detailed preview.\n\n"
                                        '**Item Paste Conversion:** If you copy an item from PoB or PoETradeMacro, and'
                                        " if you paste it in chat, the bot will convert it into the bot's image form. Nee"
-                                       "ds `Manage Messages` to delete user's post\n"
+                                       "ds `Manage Messages` to delete user's post\n\n"
                                        '**Permissions:** The permissions required to function :-\n'
                                        '`Send Messages`, `Manage Messages`, `Embed Links`, `Read Message History`,'
                                        '`Attach Files`, `Read Message History`, `Add Reactions`, `Use External Emojis`\n'
                                        '--\nTo get help or more information on a specific command, use:\n'
                                        f'`{bot_prefix}help <command name>`\n'
                                        '--\nYou can also join the semi-support server [here](https://discord.gg/hUWQ5fJ)\n'
+                                       '--\nRead my messy code [here](http://github.com/xKynn/zana) and PoE.py'
+                                       ' [here](http://github.com/xKynn/PoE.py)\n'
                                        '--\nIf you like my work and would like to help me, '
                                        'Ko-Fi/Paypal: [Link](https://ko-fi.com/D1D6EXXV)',
                            color=self.color)
 
         # This can't go in the init because help isn't loaded last & thus misses some commands
-        em.add_field(name="Commands", value=' - '+'\n - '.join(c.name for c in self.bot.commands if
+        em.add_field(name="Commands", value=' • '+'\n • '.join(f"***{c.name}*** - {c.short_doc}" for c in self.bot.commands if
                                                                c.name not in ['pob', 'link', 'convert']))
         try:
             await ctx.send(embed=em)
