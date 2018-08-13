@@ -367,6 +367,7 @@ class PathOfExile:
     async def charinfo(self, ctx, character=None, garb=None):
         """ Fetch character info for provided account and character """
         if garb:
+            character = garb
             await ctx.error("The command only needs your character name in the format\n`@Zana <charname>` - continuing regardless")
         if not character:
             return await ctx.error("Incorrect number of arguments supplied!\n`@Zana charinfo <charname>")
