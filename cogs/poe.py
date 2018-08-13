@@ -364,8 +364,10 @@ class PathOfExile:
         await responsive_embed(self.bot, responsive_dict, ctx)
 
     @commands.command()
-    async def charinfo(self, ctx, character=None):
+    async def charinfo(self, ctx, character=None, garb=None):
         """ Fetch character info for provided account and character """
+        if garb:
+            await ctx.error("The command only needs your character name in the format\n`@Zana <charname>` - continuing regardless")
         if not character:
             return await ctx.error("Incorrect number of arguments supplied!\n`@Zana charinfo <charname>")
 
