@@ -6,6 +6,7 @@ import poe.utils as utils
 import time
 
 from discord import File, Embed
+from urllib.parse import quote_plus
 from io import BytesIO
 from poe import Client
 from PIL import Image
@@ -118,13 +119,16 @@ class PathOfExile:
         image_fp.seek(0)
         print("Image ready")
 
+        em = Embed(color=self.bot.user_color)
+        links = []
+        for item in results:
+            links.append(f"\u2022 [{item.name}](http://pathofexile.gamepedia.com/{quote_plus(item.name).replace('+','%20')})")
+        em.add_field(name="Wiki Links", value='\n'.join(links))
+        em.set_image(url="attachment://image.png")
         # Meta basically only used for gems to show vendor info, might add more stuff later, good base to build on
         if meta:
-            em = Embed(color=self.bot.user_color)
             for m in meta:
                 em.add_field(name=m['name'], value=m['value'] or "None", inline=True)
-        else:
-            em = None
         try:
             await ctx.channel.send(file=File(image_fp, filename='image.png'),
                                    embed=em)

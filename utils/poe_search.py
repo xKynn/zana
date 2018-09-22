@@ -10,7 +10,7 @@ class POEClientException(Exception):
 def find_one(name: str, client, loop):
     print(name)
     if 1:
-        item = client.find_items({'name': name})
+        item = client.find_items({'_pageName': name})
         if item:
             return item[0]
         else:
