@@ -338,7 +338,7 @@ class PathOfExile:
         boots_dict = await self._oneslot_pob(stats['equipped'], 'Boots')
         belt_dict = await self._oneslot_pob(stats['equipped'], 'Belt')
         jewels_dict = self._jewels_pob(stats)
-        flasks_dict = self._flasks_pob(stats)
+        flasks_dict = self._flasks_pob(stats['equipped'])
         gem_groups_dict = self._gem_groups(stats['equipped'])
         responsive_dict['info'] = await self._info_dict(stats, pob)
         #print(responsive_dict['info'].fields)
