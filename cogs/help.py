@@ -33,7 +33,10 @@ class Help:
                                        '--\nRead my messy code [here](http://github.com/xKynn/zana) and PoE.py'
                                        ' [here](http://github.com/xKynn/PoE.py)\n'
                                        '--\nIf you like my work and would like to help me, '
-                                       'Ko-Fi/Paypal: [Link](https://ko-fi.com/D1D6EXXV)',
+                                       'Ko-Fi/Paypal: [Link](https://ko-fi.com/D1D6EXXV)\n'
+                                       '--\nDislike the font for stats in charinfo/PoB info?\n'
+                                       "I had to use it instead of discord's markdown formatting because of a bug in "
+                                       'discord/electron regarding text formatting in embedded data.',
                            color=self.color)
 
         em.set_footer(text="Contact me at Demo#7645")
