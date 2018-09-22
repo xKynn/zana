@@ -134,7 +134,7 @@ class PathOfExile:
 
     # So I've designated items 2 categories: twoslot and oneslot
     # Weapons and rings are 2 slots, basically same type twice, so i can stitch them together in one embed
-    # Oneslot is basic render and fetch image and gems
+    # Oneslot is basic, render and fetch image and gems
     async def _twoslot_pob(self, equip, itemtype):
         embed = Embed(color=self.bot.user_color)
         if f'{itemtype} 1' in equip or f'{itemtype} 2' in equip:
@@ -212,6 +212,21 @@ class PathOfExile:
                 value = '\n'.join(val_list)
                 embed.add_field(name=name, value=value, inline=True)
             return embed
+        else:
+            return None
+
+    # If i ever make a model for flasks in PoE.py this should turn into a much more detailed thing
+    def _flasks_pob(self, equip):
+        flasks = []
+        for slot in equip:
+            if slot.startswith("Flask"):
+                if equip[slot]['rarity'] == "Unique":
+                    flasks.append(f"\u2022 {equip[slot]['name']} {equip[slot]['base']}")
+                else:
+                    flasks.append(f"\u2022 {equip[slot]['base']}")
+
+        if flasks:
+            return Embed(color=self.bot.user_color, title="Flasks", description='\n'.join(flasks))
         else:
             return None
 
@@ -323,6 +338,7 @@ class PathOfExile:
         boots_dict = await self._oneslot_pob(stats['equipped'], 'Boots')
         belt_dict = await self._oneslot_pob(stats['equipped'], 'Belt')
         jewels_dict = self._jewels_pob(stats)
+        flasks_dict = self._flasks_pob(stats)
         gem_groups_dict = self._gem_groups(stats['equipped'])
         responsive_dict['info'] = await self._info_dict(stats, pob)
         #print(responsive_dict['info'].fields)
@@ -352,6 +368,8 @@ class PathOfExile:
             files.append(belt_dict['file'])
         if jewels_dict:
             responsive_dict['jewels'] = jewels_dict
+        if flasks_dict:
+            responsive_dict['flask'] = flasks_dict
         if gem_groups_dict:
             responsive_dict['gems'] = gem_groups_dict
         for key in responsive_dict:

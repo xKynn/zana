@@ -9,4 +9,5 @@ emoji_dict = {'info': PartialEmoji(name="info", id=475570696345485332, animated=
               'boots': PartialEmoji(name="boots", id=475570695980449797, animated=False),
               'bodyarmour': PartialEmoji(name="bodyarmour", id=475570697083682826, animated=False),
               'amulet': PartialEmoji(name="amulet", id=475570696643411978, animated=False),
-              'belt': PartialEmoji(name="belt", id=475570694772621315, animated=False)}
+              'belt': PartialEmoji(name="belt", id=475570694772621315, animated=False),
+              'flask': PartialEmoji(name="flask", id=489892408893505567, animated=False)}
