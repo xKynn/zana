@@ -224,10 +224,10 @@ class PathOfExile:
         flasks = []
         for slot in equip:
             if slot.startswith("Flask"):
-                if equip[slot]['rarity'].lower() == "unique":
-                    flasks.append(f"\u2022 {equip[slot]['name']} {equip[slot]['base']}")
+                if equip[slot]['parsed']['rarity'].lower() == "unique":
+                    flasks.append(f"\u2022 {equip[slot]['parsed']['name']} {equip[slot]['parsed']['base']}")
                 else:
-                    flasks.append(f"\u2022 {equip[slot]['base']}")
+                    flasks.append(f"\u2022 {equip[slot]['parsed']['base']}")
 
         if flasks:
             return Embed(color=self.bot.user_color, title="Flasks", description='\n'.join(flasks))
