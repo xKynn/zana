@@ -452,6 +452,9 @@ class PathOfExile:
             return
         d = {}
         await self.bot.loop.run_in_executor(None, utils._get_wiki_base, pob_item, d, self.client, "Chat Item")
+        print(d['Chat Item'].energy_shield)
+        #utils.modify_base_stats(d['Chat Item'])
+        print(d['Chat Item'].energy_shield)
         renderer = utils.ItemRender(d['Chat Item'].rarity)
         img = renderer.render(d['Chat Item'])
         image_fp = BytesIO()
