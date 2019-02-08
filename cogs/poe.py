@@ -46,7 +46,7 @@ class PathOfExile:
         # I just run instances of find_ones in executor + gather
         for item in item_matches[:5]:
             tasks.append(self.bot.loop.run_in_executor(None,
-                                                       find_one, item.strip('[[').strip(']]'),
+                                                       find_one, f"{item.strip('[[').strip(']]')}%",
                                                        self.client, self.bot.loop))
         results = await asyncio.gather(*tasks)
 
