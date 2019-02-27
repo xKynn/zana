@@ -19,13 +19,25 @@ from utils.responsive_embed import responsive_embed
 from poe import models
 
 
-
 class PathOfExile:
     def __init__(self, bot):
         self.bot = bot
         self.client = Client()
         self.re = re.compile(r'\[\[[^\]]+\]\]')
         self.rng = re.compile('\(.+?\)')
+        self.vendor_info = {
+            "1": "Nessa** - *Next to the player's stash*",
+            "2": "Yeena** - *Inside the encampment, on the left side*",
+            "3": "Clarissa** - *Left to the notice board*",
+            "4": "Petarus and Vanja** - *Next to the bridge to the town's Waypoint*",
+            "5": "Lani**",
+            "6": "Lilly Roth** - *Next to the player's Stash*",
+            "7": "Yeena**",
+            "8": "Clarissa** - *Left to the notice board*",
+            "9": "Petarus and Vanja** - *Opposite of the Stash*",
+            "10": "Lani** - *near the bridge to the ship*",
+            "Siosa": "Siosa** - *in The Library after completing quest A fixture of Fate*"
+        }
 
     @commands.command()
     async def invite(self, ctx):
@@ -64,8 +76,11 @@ class PathOfExile:
                 dt = {'name': f"{result.name} vendors"}
                 venstr = ""
                 for vendor in result.vendors:
-                    classes = "All Classes" if vendor['classes'] == '' else vendor['classes']
-                    venstr += f"**Act {vendor['act']} :** {classes}\n"
+                    classes = "Available to all classes" if vendor['classes'] == '' else vendor['classes']
+                    siosa = True if vendor['act'] == '3' and vendor['classes'] == '' else False
+                    venstr += f"**Act {vendor['act']} - " \
+                              f"{self.vendor_info[vendor['act']] if not siosa else self.vendor_info['Siosa']}" \
+                              f" : **{classes}**\n"
                 dt['value'] = venstr
                 meta.append(dt)
             elif 'divination_card' in result.tags:
@@ -567,7 +582,7 @@ class PathOfExile:
                 unique.evasion = base.evasion
                 unique.energy_shield = base.energy_shield
 
-        except AttributeError:
+        except:
             pass
         renderer = utils.ItemRender('unique')
         img = renderer.render(unique)
