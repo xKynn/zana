@@ -29,5 +29,26 @@ class Config:
         self.bot.server_config.update(conf)
         await ctx.send("Enabled!")
 
+    @commands.command()
+    @commands.has_permissions(administrator=True)
+    async def disable_conversion(self, ctx):
+        """ Disable conversion of trademacro copied items to poe-style items, requires Administrator perms"""
+        conf = self.bot.server_config.conf
+        if str(ctx.guild.id) not in conf:
+            conf[str(ctx.guild.id)] = {}
+        conf[str(ctx.guild.id)]['convert'] = True
+        self.bot.server_config.update(conf)
+        await ctx.send("Conversion Disabled!")
+
+    @commands.command()
+    @commands.has_permissions(administrator=True)
+    async def enable_conversion(self, ctx):
+        """ Enable conversion of trademacro copied items to poe-style items, requires Administrator perms"""
+        conf = self.bot.server_config.conf
+        if str(ctx.guild.id) not in conf:
+            conf[str(ctx.guild.id)] = {}
+        conf[str(ctx.guild.id)]['convert'] = False
+        self.bot.server_config.update(conf)
+        await ctx.send("Conversion Enabled!")
 def setup(bot):
     bot.add_cog(Config(bot))

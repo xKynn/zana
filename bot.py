@@ -41,6 +41,9 @@ class Zana(commands.Bot):
     def run(self):
         super().run(self.config['token'])
 
+    async def report(self, msg):
+        await self.owner.send(f"Error, context: `{msg}`")
+
     # 'on_message' bot what a n00b omg
     # Only way to link items or provide pob without people requesting it as i wanted this to be a conversation based bot
     async def on_message(self, message):
@@ -49,19 +52,38 @@ class Zana(commands.Bot):
         await self.wait_until_ready()
         ctx = await self.get_context(message, cls=ZanaContext)
         if '[[' in ctx.message.content and ']]' in ctx.message.content:
-            await self.find_command.invoke(ctx)
+            try:
+                async with message.channel.typing():
+                    await self.find_command.invoke(ctx)
+            except:
+                await ctx.error("There was an error with your request.")
+                await self.report(ctx.message.content)
         elif 'pastebin.com/' in ctx.message.content:
-            await self.pob_command.invoke(ctx)
+            if str(ctx.guild.id) in self.server_config.conf and self.server_config.conf[str(ctx.guild.id)][
+                'disable_pastebin']:
+                return
+            try:
+                async with message.channel.typing():
+                    await self.pob_command.invoke(ctx)
+            except:
+                await ctx.error("There was an error with parsing your pastebin.")
+                await self.report(ctx.message.content)
         elif ctx.message.content.startswith("Rarity:"):
             try:
-                await self.convert_command.invoke(ctx)
+                if str(ctx.guild.id) in self.server_config.conf and self.server_config.conf[str(ctx.guild.id)][
+                    'convert']:
+                    return
+                async with message.channel.typing():
+                    res = await self.convert_command.invoke(ctx)
                 try:
-                    await ctx.message.delete()
+                    if res:
+                        await ctx.message.delete()
                 except:
-                    # Funny thing is, error is an embed, if someone removes that perm, the error doesn't go through as well
+                    #Funny thing is, error is an embed, if someone removes that perm,
+                    #the error doesn't go through as well
                     await ctx.error("`Manage Messages` required to delete", delete_after=2)
             except:
-                pass
+                await self.report(ctx.message.content)
         else:
             await self.invoke(ctx)
 
@@ -83,6 +105,8 @@ class Zana(commands.Bot):
         # Dump channel where i can upload 10 images at once, get url and serve in embeds freely as i'd like to
         self.dump_channel = self.get_channel(475526519255728128)
         self.ses = aiohttp.ClientSession()
+        c = await self.application_info()
+        self.owner = c.owner
         print(f'Client logged in.\n'
               f'{self.user.name}\n'
               f'{self.user.id}\n'

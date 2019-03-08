@@ -439,8 +439,6 @@ class PathOfExile:
     @commands.command()
     async def pob(self, ctx):
         """ Fetch character info for valid pob pastebin links posted in chat """
-        if str(ctx.guild.id) in ctx.bot.server_config.conf and ctx.bot.server_config.conf[str(ctx.guild.id)]['disable_pastebin']:
-            return
         # Pastebin util is from another discord pob parsing bot, why re-invent the wheel i guess?
         paste_keys = pastebin.fetch_paste_key(ctx.message.content)
         if not paste_keys: return
@@ -457,6 +455,7 @@ class PathOfExile:
     @commands.command()
     async def convert(self, ctx):
         """ Convert an item copied from PoB or PoETradeMacro to the Zana version """
+
 
         # Put my PoB item parser to good use
         try:
