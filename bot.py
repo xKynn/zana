@@ -63,8 +63,8 @@ class Zana(commands.Bot):
                     and self.server_config.conf[str(ctx.guild.id)]['disable_pastebin']:
                 return
             try:
-                async with message.channel.typing():
-                    await self.pob_command.invoke(ctx)
+                await message.channel.trigger_typing()
+                await self.pob_command.invoke(ctx)
             except:
                 await ctx.error("There was an error with parsing your pastebin.")
                 await self.report(ctx.message.content)
