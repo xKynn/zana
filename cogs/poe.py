@@ -58,7 +58,7 @@ class PathOfExile:
         # I just run instances of find_ones in executor + gather
         for item in item_matches[:5]:
             tasks.append(self.bot.loop.run_in_executor(None,
-                                                       find_one, f"{item.strip('[[').strip(']]')}%",
+                                                       find_one, f"%{item.strip('[[').strip(']]')}%",
                                                        self.client, self.bot.loop))
         results = await asyncio.gather(*tasks)
 
@@ -398,9 +398,10 @@ class PathOfExile:
             for index, field in enumerate(responsive_dict[key].fields):
                 if field.value == '':
                     responsive_dict[key].set_field_at(index, name=field.name, value="None", inline=field.inline)
-        upload = await self.bot.dump_channel.send(files=files)
-        for attachment in upload.attachments:
-            responsive_dict[attachment.filename.split('.')[0]].set_image(url=attachment.url)
+        if files:
+            upload = await self.bot.dump_channel.send(files=files)
+            for attachment in upload.attachments:
+                responsive_dict[attachment.filename.split('.')[0]].set_image(url=attachment.url)
         await responsive_embed(self.bot, responsive_dict, ctx)
 
     @commands.command()
