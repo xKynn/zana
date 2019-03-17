@@ -60,8 +60,8 @@ class Zana(commands.Bot):
                 await ctx.error("There was an error with your request.")
                 await self.report(ctx.message.content)
         elif 'pastebin.com/' in ctx.message.content:
-            if str(ctx.guild.id) in self.server_config.conf and 'disable_pastebin' in self.server_config.conf[str(ctx.guild.id)] \
-                    and self.server_config.conf[str(ctx.guild.id)]['disable_pastebin']:
+            if str(ctx.guild.id) in self.server_config.conf and \
+                    self.server_config.conf[str(ctx.guild.id)].get('disable_pastebin'):
                 return
             try:
                 await message.channel.trigger_typing()
@@ -84,14 +84,13 @@ class Zana(commands.Bot):
 
         elif ctx.message.content.startswith("Rarity:"):
             try:
-                if str(ctx.guild.id) in self.server_config.conf and 'convert' in self.server_config.conf[str(ctx.guild.id)] and \
-                        self.server_config.conf[str(ctx.guild.id)]['convert']:
+                if str(ctx.guild.id) in self.server_config.conf and \
+                        self.server_config.conf[str(ctx.guild.id)].get('convert'):
                     return
                 async with message.channel.typing():
-                    res = await self.convert_command.invoke(ctx)
+                    await self.convert_command.invoke(ctx)
                 try:
-                    if res:
-                        await ctx.message.delete()
+                    await ctx.message.delete()
                 except:
                     #Funny thing is, error is an embed, if someone removes that perm,
                     #the error doesn't go through as well
