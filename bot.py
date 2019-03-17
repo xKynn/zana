@@ -1,11 +1,12 @@
 import aiohttp
 import json
 
-from datetime import datetime
 from discord.ext import commands
 from pathlib import Path
 from utils.custom_context import ZanaContext
 from utils.server_config import ServerConfig
+from poe.exceptions import OutdatedPoBException
+from poe.exceptions import AbsentItemBaseException
 
 class Zana(commands.Bot):
     def __init__(self, *args, **kwargs):
@@ -65,6 +66,17 @@ class Zana(commands.Bot):
             try:
                 await message.channel.trigger_typing()
                 await self.pob_command.invoke(ctx)
+            except OutdatedPoBException:
+                await ctx.error("There was an error with parsing your pastebin. It was missing key build information. "
+                                "It is very likely it was exported from an outdated path of building version, please try "
+                                "exporting it from a newer version.")
+                await self.report(ctx.message.content)
+            except AbsentItemBaseException:
+                await ctx.error("There was an error with parsing your pastebin. A corresponding item base could not be"
+                                " found for an item on the wiki. Zana can not correctly render items if the base types"
+                                " are not consistent with in-game names, same goes for item names for uniques."
+                                " Rare item names are changeable.")
+                await self.report(ctx.message.content)
             except:
                 await ctx.error("There was an error with parsing your pastebin.")
                 await self.report(ctx.message.content)
