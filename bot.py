@@ -66,20 +66,22 @@ class Zana(commands.Bot):
             try:
                 await message.channel.trigger_typing()
                 await self.pob_command.invoke(ctx)
-            except OutdatedPoBException:
-                await ctx.error("There was an error with parsing your pastebin. It was missing key build information. "
-                                "It is very likely it was exported from an outdated path of building version, please try "
-                                "exporting it from a newer version.")
+            except Exception as e:
+                if "OutdatedPoBException" in str(e):
+                    await ctx.error(
+                        "There was an error with parsing your pastebin. It was missing key build information. "
+                        "It is very likely it was exported from an outdated path of building version, please try "
+                        "exporting it from a newer version.")
+                elif "AbsentItemBaseException" in str(e):
+                    await ctx.error(
+                        "There was an error with parsing your pastebin. A corresponding item base could not be"
+                        " found for an item on the wiki. Zana can not correctly render items if the base types"
+                        " are not consistent with in-game names, same goes for item names for uniques."
+                        " Rare item names are changeable.")
+                else:
+                    await ctx.error("There was an error with parsing your pastebin.")
                 await self.report(ctx.message.content)
-            except AbsentItemBaseException:
-                await ctx.error("There was an error with parsing your pastebin. A corresponding item base could not be"
-                                " found for an item on the wiki. Zana can not correctly render items if the base types"
-                                " are not consistent with in-game names, same goes for item names for uniques."
-                                " Rare item names are changeable.")
-                await self.report(ctx.message.content)
-            except:
-                await ctx.error("There was an error with parsing your pastebin.")
-                await self.report(ctx.message.content)
+
         elif ctx.message.content.startswith("Rarity:"):
             try:
                 if str(ctx.guild.id) in self.server_config.conf and 'convert' in self.server_config.conf[str(ctx.guild.id)] and \
