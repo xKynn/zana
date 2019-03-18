@@ -1,11 +1,12 @@
 import aiohttp
 import json
 
-from datetime import datetime
 from discord.ext import commands
 from pathlib import Path
 from utils.custom_context import ZanaContext
 from utils.server_config import ServerConfig
+from poe.exceptions import OutdatedPoBException
+from poe.exceptions import AbsentItemBaseException
 
 class Zana(commands.Bot):
     def __init__(self, *args, **kwargs):
@@ -59,25 +60,38 @@ class Zana(commands.Bot):
                 await ctx.error("There was an error with your request.")
                 await self.report(ctx.message.content)
         elif 'pastebin.com/' in ctx.message.content:
-            if str(ctx.guild.id) in self.server_config.conf and 'disable_pastebin' in self.server_config.conf[str(ctx.guild.id)] \
-                    and self.server_config.conf[str(ctx.guild.id)]['disable_pastebin']:
+            if str(ctx.guild.id) in self.server_config.conf and \
+                    self.server_config.conf[str(ctx.guild.id)].get('disable_pastebin'):
                 return
-            if 1:
+            try:
                 await message.channel.trigger_typing()
                 await self.pob_command.invoke(ctx)
-            else:
-                await ctx.error("There was an error with parsing your pastebin.")
+
+            except Exception as e:
+                if "OutdatedPoBException" in str(e):
+                    await ctx.error(
+                        "There was an error with parsing your pastebin. It was missing key build information. "
+                        "It is very likely it was exported from an outdated path of building version, please try "
+                        "exporting it from a newer version.")
+                elif "AbsentItemBaseException" in str(e):
+                    await ctx.error(
+                        "There was an error with parsing your pastebin. A corresponding item base could not be"
+                        " found for an item on the wiki. Zana can not correctly render items if the base types"
+                        " are not consistent with in-game names, same goes for item names for uniques."
+                        " Rare item names are changeable.")
+                else:
+                    await ctx.error("There was an error with parsing your pastebin.")
                 await self.report(ctx.message.content)
+
         elif ctx.message.content.startswith("Rarity:"):
             try:
-                if str(ctx.guild.id) in self.server_config.conf and 'convert' in self.server_config.conf[str(ctx.guild.id)] and \
-                        self.server_config.conf[str(ctx.guild.id)]['convert']:
+                if str(ctx.guild.id) in self.server_config.conf and \
+                        self.server_config.conf[str(ctx.guild.id)].get('convert'):
                     return
                 async with message.channel.typing():
-                    res = await self.convert_command.invoke(ctx)
+                    await self.convert_command.invoke(ctx)
                 try:
-                    if res:
-                        await ctx.message.delete()
+                    await ctx.message.delete()
                 except:
                     #Funny thing is, error is an embed, if someone removes that perm,
                     #the error doesn't go through as well
