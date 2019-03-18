@@ -52,20 +52,20 @@ class Zana(commands.Bot):
         await self.wait_until_ready()
         ctx = await self.get_context(message, cls=ZanaContext)
         if '[[' in ctx.message.content and ']]' in ctx.message.content:
-            try:
+            if 1:
                 async with message.channel.typing():
                     await self.find_command.invoke(ctx)
-            except:
+            else:
                 await ctx.error("There was an error with your request.")
                 await self.report(ctx.message.content)
         elif 'pastebin.com/' in ctx.message.content:
             if str(ctx.guild.id) in self.server_config.conf and 'disable_pastebin' in self.server_config.conf[str(ctx.guild.id)] \
                     and self.server_config.conf[str(ctx.guild.id)]['disable_pastebin']:
                 return
-            try:
+            if 1:
                 await message.channel.trigger_typing()
                 await self.pob_command.invoke(ctx)
-            except:
+            else:
                 await ctx.error("There was an error with parsing your pastebin.")
                 await self.report(ctx.message.content)
         elif ctx.message.content.startswith("Rarity:"):

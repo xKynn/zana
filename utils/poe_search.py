@@ -14,7 +14,11 @@ def find_one(name: str, client, loop):
         if item:
             return item[0]
         else:
-            return None
+            item = client.find_passives({'name': name}, limit=1)
+            if item:
+                return item[0]
+            else:
+                return None
     else:
         return POEClientException
 

@@ -9,6 +9,7 @@ from discord import File, Embed
 from urllib.parse import quote_plus
 from io import BytesIO
 from poe import Client
+from poe.models import PassiveSkill
 from PIL import Image
 from discord.ext import commands
 from utils.poe_search import find_one, cache_pob_xml
@@ -68,42 +69,45 @@ class PathOfExile:
         images = []
         meta = []
         for result in results:
-            if result.base == "Prophecy":
-                flavor = 'prophecy'
-            elif 'gem' in result.tags:
-                flavor = 'gem'
-                print(result.vendors)
-                dt = {'name': f"{result.name} vendors"}
-                venstr = ""
-                for vendor in result.vendors:
-                    classes = "Available to all classes" if vendor['classes'] == '' else vendor['classes']
-                    siosa = True if vendor['act'] == '3' and vendor['classes'] == '' else False
-                    venstr += f"**Act {vendor['act']}** - {classes} - " \
-                              f"{self.vendor_info[vendor['act']] if not siosa else self.vendor_info['Siosa']}\n"
-                dt['value'] = venstr
-                meta.append(dt)
-            elif 'divination_card' in result.tags:
-                # Lib has a different render function for div cards as they don't fit the standard stats and sorting
-                # method, might change in the future but would be extremely unneat code-wise.
-                r = utils.ItemRender('unique')
-                images.append(r.render_divcard(result))
-                try:
-                    reward = await self.bot.loop.run_in_executor(None,
-                                                                 find_one, result.reward,
-                                                                 self.client, self.bot.loop)
-                    if reward.base == "Prophecy":
-                        i_flavor = 'prophecy'
-                    elif 'gem' in reward.tags:
-                        i_flavor = 'gem'
-                    else:
-                        i_flavor = reward.rarity
-                    i_render = utils.ItemRender(i_flavor)
-                    images.append(i_render.render(reward))
-                except:
-                    pass
-                continue
+            if not isinstance(result, PassiveSkill):
+                if result.base == "Prophecy":
+                    flavor = 'prophecy'
+                elif 'gem' in result.tags:
+                    flavor = 'gem'
+                    print(result.vendors)
+                    dt = {'name': f"{result.name} vendors"}
+                    venstr = ""
+                    for vendor in result.vendors:
+                        classes = "Available to all classes" if vendor['classes'] == '' else vendor['classes']
+                        siosa = True if vendor['act'] == '3' and vendor['classes'] == '' else False
+                        venstr += f"**Act {vendor['act']}** - {classes} - " \
+                                  f"{self.vendor_info[vendor['act']] if not siosa else self.vendor_info['Siosa']}\n"
+                    dt['value'] = venstr
+                    meta.append(dt)
+                elif 'divination_card' in result.tags:
+                    # Lib has a different render function for div cards as they don't fit the standard stats and sorting
+                    # method, might change in the future but would be extremely unneat code-wise.
+                    r = utils.ItemRender('unique')
+                    images.append(r.render_divcard(result))
+                    try:
+                        reward = await self.bot.loop.run_in_executor(None,
+                                                                     find_one, result.reward,
+                                                                     self.client, self.bot.loop)
+                        if reward.base == "Prophecy":
+                            i_flavor = 'prophecy'
+                        elif 'gem' in reward.tags:
+                            i_flavor = 'gem'
+                        else:
+                            i_flavor = reward.rarity
+                        i_render = utils.ItemRender(i_flavor)
+                        images.append(i_render.render(reward))
+                    except:
+                        pass
+                    continue
+                else:
+                    flavor = result.rarity
             else:
-                flavor = result.rarity
+                flavor = 'normal'
             if 'divination_card' not in result.tags:
                 r = utils.ItemRender(flavor)
                 images.append(r.render(result))
