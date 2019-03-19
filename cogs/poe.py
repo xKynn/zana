@@ -59,7 +59,7 @@ class PathOfExile:
         # I just run instances of find_ones in executor + gather
         for item in item_matches[:5]:
             tasks.append(self.bot.loop.run_in_executor(None,
-                                                       find_one, f"%{item.strip('[[').strip(']]')}%",
+                                                       find_one, f"{item.strip('[[').strip(']]')}%",
                                                        self.client, self.bot.loop))
         results = await asyncio.gather(*tasks)
 
@@ -94,15 +94,23 @@ class PathOfExile:
                                                                      find_one, result.reward,
                                                                      self.client, self.bot.loop)
                         if reward.base == "Prophecy":
-                            i_flavor = 'prophecy'
+                            i_render = utils.ItemRender('prophecy')
+                            images.append(i_render.render(reward))
                         elif 'gem' in reward.tags:
-                            i_flavor = 'gem'
+                            i_render = utils.ItemRender('gem')
+                            images.append(i_render.render(reward))
+                        elif 'divination_card' in reward.tags:
+                            i_render = utils.ItemRender('unique')
+                            images.append(i_render.render_divcard(reward))
                         else:
-                            i_flavor = reward.rarity
-                        i_render = utils.ItemRender(i_flavor)
-                        images.append(i_render.render(reward))
+                            i_render = utils.ItemRender(reward.rarity)
+                            images.append(i_render.render(reward))
                     except:
                         pass
+                    if result.drop.areas:
+                        meta.append({'name': f"{result.name} Drop Locations",
+                                     'value': '\n'.join([f'\u2022 {x}' for x in result.drop.areas.split(',')])})
+
                     continue
                 else:
                     flavor = result.rarity

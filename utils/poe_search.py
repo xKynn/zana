@@ -11,14 +11,15 @@ def find_one(name: str, client, loop):
     print(name)
     if 1:
         item = client.find_items({'_pageName': name}, limit=1)
+        if not item:
+            item = client.find_items({'_pageName': f"The {name}"}, limit=1)
+            if not item:
+                item = client.find_passives({'name': name}, limit=1)
+
         if item:
             return item[0]
         else:
-            item = client.find_passives({'name': name}, limit=1)
-            if item:
-                return item[0]
-            else:
-                return None
+            return None
     else:
         return POEClientException
 
