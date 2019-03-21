@@ -68,7 +68,16 @@ class PathOfExile:
 
         images = []
         meta = []
+
         for result in results:
+            if isinstance(result, dict):
+                if len(result['matches']) and len(result['matches']) < 2:
+                    ctx.message.content = f"[[{result['matches'][0][0]}]]"
+                    self.bot.loop.create_task(self.link.invoke(ctx))
+                else:
+                    await ctx.error(f"""Couldn't find anything for *"{result['name']}"*, did you mean:\n """ +
+                                    "\n".join(f'\u2022 *{x[0]}*' for x in result['matches']))
+                continue
             if not isinstance(result, PassiveSkill):
                 if result.base == "Prophecy":
                     flavor = 'prophecy'
@@ -123,7 +132,8 @@ class PathOfExile:
         # Stitch images together, traditionally 5 images tops, but as div cards can feature their reward as an image
         # Possible max images can be 10
         # R.I.P that one time where we stitched headhunters for image width of 69700
-
+        if len(results) < 2 and isinstance(results[0], dict):
+            return
         if len(images) > 1:
             box = [0, 0]
             for image in images:

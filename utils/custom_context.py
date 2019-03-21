@@ -8,7 +8,8 @@ class ZanaContext(commands.Context):
                            color=discord.Color.dark_red(),
                            description=err.format())
 
-        await self.send(embed=em, delete_after=delete_after)
+        m = await self.send(embed=em, delete_after=delete_after)
+        return m
         
     async def reply(self, content: str, *, embed: discord.Embed = None):
         """ replies with mention """
