@@ -17,6 +17,9 @@ async def responsive_embed(bot, embed_dict, ctx):
             await emsg.add_reaction(emoji_dict[emoji])
     while 1:
         reaction, user = await bot.wait_for('reaction_add', check=check)
-        await emsg.remove_reaction(reaction.emoji, user)
+        try:
+            await emsg.remove_reaction(reaction.emoji, user)
+        except:
+            pass
         new_embed = embed_dict[reaction.emoji.name]
         await emsg.edit(embed=new_embed)

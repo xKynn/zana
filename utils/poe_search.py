@@ -43,7 +43,7 @@ def find_one(name: str, client, loop):
                     process.join()
 
                 #return {"matches": sorted(matches.items(), key=lambda it: it[1])[:3], "name": name.replace("%", "")}
-                return {"matches": sorted(matches.items(), key= lambda kv: kv[1])[-3:], "name": name}
+                return {"matches": sorted(matches.items(), key= lambda kv: kv[1], reverse=True)[:3], "name": name}
 
         return item[0]
     else:
