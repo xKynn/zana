@@ -1,9 +1,8 @@
 import poe.utils as utils
 import threading
 import json
-from Levenshtein import StringMatcher
 
-levenshtein = StringMatcher.StringMatcher()
+from nltk import bigrams
 
 from cachetools import cached
 from .cache import cache
@@ -12,10 +11,14 @@ with open('utils/items.json') as f:
     items = json.load(f)
 
 
-def calc_levenshtein(name, item, matches):
-    d = StringMatcher.StringMatcher(seq1=name.lower(), seq2=item.lower()).distance()
-    if d <= 3:
-        matches[item] = d
+def calc_bigrams(name, item, matches):
+    count = 0
+    bi_item = [x for x in bigrams(item.lower())]
+    for n in name:
+        if n in bi_item:
+            count += 1
+    matches[item] = count
+
 
 class POEClientException(Exception):
     pass
@@ -30,15 +33,17 @@ def find_one(name: str, client, loop):
             if not item:
                 matches = {}
                 processes = []
+                name_tri = [x for x in bigrams(name.lower())]
                 for item_name in items["names"]:
-                    p = threading.Thread(target=calc_levenshtein, args=(name.replace("%", ""), item_name, matches,))
+                    p = threading.Thread(target=calc_bigrams, args=(name_tri, item_name, matches, ))
                     processes.append(p)
                     p.start()
 
                 for process in processes:
                     process.join()
 
-                return {"matches": sorted(matches.items(), key=lambda it: it[1])[:3], "name": name.replace("%", "")}
+                #return {"matches": sorted(matches.items(), key=lambda it: it[1])[:3], "name": name.replace("%", "")}
+                return {"matches": sorted(matches.items(), key= lambda kv: kv[1])[-3:], "name": name}
 
         return item[0]
     else:
