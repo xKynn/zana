@@ -26,6 +26,7 @@ class PathOfExile:
         self.client = Client()
         self.re = re.compile(r'\[\[[^\]]+\]\]')
         self.rng = re.compile('\(.+?\)')
+        self.reaction_emojis = ["{}\N{COMBINING ENCLOSING KEYCAP}".format(num) for num in range(1, 4)]
         self.vendor_info = {
             "1": "Nessa (*Next to the player's stash*)",
             "2": "Yeena (*Inside the encampment, on the left side*)",
@@ -66,8 +67,43 @@ class PathOfExile:
         # Results are returned as None for invalid items from find_one, so remove None-s
         results = [x for x in results if x]
 
+        new_selections = []
+        for result in results:
+            if isinstance(result, dict):
+                if len(result['matches']) and len(result['matches']) > 2:
+                    em = Embed(title="Item not found",
+                               description=f"""Couldn't find anything for *"{result['name']}"*, did you mean:\n """ +
+                                    "\n".join(f'\u2022 *{x[0]}*' for x in result['matches']))
+                    msg = await ctx.channel.send(embed=em)
+
+                    def check(reaction, user):
+                        try:
+                            return reaction.emoji in self.reaction_emojis \
+                                   and reaction.message.id == msg.id \
+                                   and user.id != self.bot.user.id
+                        except:
+                            return False
+
+                    for emoji in self.reaction_emojis:
+                        await msg.add_reaction(emoji)
+
+                    reaction, user = await self.bot.wait_for('reaction_add', check=check)
+                    new_selections.append(result['matches'][self.reaction_emojis.index(reaction.emoji)][0])
+                    await msg.delete()
+        tasks = []
+        print(new_selections)
+        for new in new_selections:
+            tasks.append(self.bot.loop.run_in_executor(None,
+                                                       find_one, new,
+                                                       self.client, self.bot.loop))
+        new_results = await asyncio.gather(*tasks)
+
+        results.extend(new_results)
+
         images = []
         meta = []
+
+        print(results)
 
         for result in results:
             if isinstance(result, dict):
@@ -75,9 +111,7 @@ class PathOfExile:
                     ctx.message.content = f"[[{result['matches'][0][0]}]]"
                     self.bot.loop.create_task(self.link.invoke(ctx))
                 else:
-                    await ctx.error(f"""Couldn't find anything for *"{result['name']}"*, did you mean:\n """ +
-                                    "\n".join(f'\u2022 *{x[0]}*' for x in result['matches']))
-                continue
+                    continue
             if not isinstance(result, PassiveSkill):
                 if result.base == "Prophecy":
                     flavor = 'prophecy'
@@ -128,6 +162,8 @@ class PathOfExile:
             if 'divination_card' not in result.tags:
                 r = utils.ItemRender(flavor)
                 images.append(r.render(result))
+
+        results = [x for x in results if not isinstance(x, dict)]
 
         # Stitch images together, traditionally 5 images tops, but as div cards can feature their reward as an image
         # Possible max images can be 10
