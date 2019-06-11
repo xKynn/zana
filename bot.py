@@ -75,8 +75,8 @@ class Zana(commands.Bot):
                         "exporting it from a newer version.")
                 elif "AbsentItemBaseException" in str(e):
                     await ctx.error(
-                        "There was an error with parsing your pastebin. A corresponding item base could not be"
-                        " found for an item on the wiki. Zana can not correctly render items if the base types"
+                        "There was an error with parsing your pastebin. One or more corresponding item bases could not be"
+                        " found on the wiki. Zana can not correctly render items if the base types"
                         " are not consistent with in-game names, same goes for item names for uniques."
                         " Rare item names are changeable.")
                 else:
