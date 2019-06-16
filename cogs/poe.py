@@ -515,7 +515,6 @@ class PathOfExile:
     async def convert(self, ctx):
         """ Convert an item copied from PoB or PoETradeMacro to the Zana version """
 
-
         # Put my PoB item parser to good use
         try:
             pob_item = utils.parse_pob_item(ctx.message.content)
@@ -523,6 +522,7 @@ class PathOfExile:
             print(ctx.message.content)
             return
         d = {}
+        print(pob_item)
         await self.bot.loop.run_in_executor(None, utils._get_wiki_base, pob_item, d, self.client, "Chat Item")
         #print(d)
         #print(d['Chat Item'].energy_shield)
@@ -534,10 +534,17 @@ class PathOfExile:
         img.save(image_fp, 'png')
         image_fp.seek(0)
         file = File(image_fp, filename=f"converted.png")
+        upload = await self.bot.dump_channel.send(file=file)
+        em = Embed()
+        em.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.avatar_url)
+        em.set_image(url=upload.attachments[0].url)
         try:
-            await ctx.send(file=file)
+            await ctx.send(embed=em)
         except:
-            await ctx.error("`Attach Files` permission required", delete_after=2)
+            try:
+                await ctx.send(f"**{ctx.author.name}#{ctx.author.discriminator}**:\n", file=file)
+            except:
+                await ctx.error("`Attach Files` permission required", delete_after=2)
 
     @commands.command()
     async def roll(self, ctx, * ,item: str=None):
