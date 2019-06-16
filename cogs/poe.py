@@ -27,6 +27,7 @@ class PathOfExile:
         self.re = re.compile(r'\[\[[^\]]+\]\]')
         self.rng = re.compile('\(.+?\)')
         self.reaction_emojis = ["{}\N{COMBINING ENCLOSING KEYCAP}".format(num) for num in range(1, 4)]
+        self.reaction_emojis.append("❌")
         self.vendor_info = {
             "1": "Nessa (*Next to the player's stash*)",
             "2": "Yeena (*Inside the encampment, on the left side*)",
@@ -88,6 +89,8 @@ class PathOfExile:
                         await msg.add_reaction(emoji)
 
                     reaction, user = await self.bot.wait_for('reaction_add', check=check)
+                    if reaction.emoji == self.reaction_emojis[-1]:
+                        return await msg.delete()
                     new_selections.append(result['matches'][self.reaction_emojis.index(reaction.emoji)][0])
                     await msg.delete()
         tasks = []
