@@ -87,8 +87,10 @@ class PathOfExile:
 
                     for emoji in self.reaction_emojis:
                         await msg.add_reaction(emoji)
-
-                    reaction, user = await self.bot.wait_for('reaction_add', check=check)
+                    try:
+                        reaction, user = await self.bot.wait_for('reaction_add', check=check, timeout=20)
+                    except asyncio.TimeoutError:
+                        return await msg.delete()
                     if reaction.emoji == self.reaction_emojis[-1]:
                         return await msg.delete()
                     new_selections.append(result['matches'][self.reaction_emojis.index(reaction.emoji)][0])
