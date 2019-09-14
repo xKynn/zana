@@ -18,9 +18,10 @@ from utils.poeurl import shrink_tree_url
 from utils.class_icons import class_icons
 from utils.responsive_embed import responsive_embed
 from poe import models
+from discord.ext.commands import Cog
 
 
-class PathOfExile:
+class PathOfExile(Cog):
     def __init__(self, bot):
         self.bot = bot
         self.client = Client()
@@ -397,9 +398,13 @@ class PathOfExile:
             info.add_field(name="Other Skill Trees", value=skill_trees, inline=False)
         else:
             info.url = stats['tree_link']
-        asc_text = '\n'.join(stats['asc_nodes'])
+        asc_list = [f"[{node}](https://pathofexile.gamepedia.com/{node.replace(' ', '_')})" for node in stats['asc_nodes']]
+        asc_text = '\n'.join(asc_list)
+
         info.add_field(name="Ascendancies", value=asc_text, inline=True)
-        keystones = '\n'.join(stats['keystones'])
+        ks_list = [f"[{node}](https://pathofexile.gamepedia.com/{node.replace(' ', '_')})" for node in
+                    stats['keystones']]
+        keystones = '\n'.join(ks_list)
         info.add_field(name="Keystones", value=keystones, inline=True)
         if pob:
             icon_url = class_icons[stats['ascendancy'].lower()] if stats['ascendancy'] != "None"\
@@ -466,6 +471,34 @@ class PathOfExile:
             for attachment in upload.attachments:
                 responsive_dict[attachment.filename.split('.')[0]].set_image(url=attachment.url)
         await responsive_embed(self.bot, responsive_dict, ctx)
+
+    @commands.command()
+    async def characters(self, ctx, account=None):
+        """ Get all characters on account """
+        if not account:
+            return await ctx.error("Incorrect number of arguments supplied!\n`@Zana characters <account_name>")
+
+        async with self.bot.ses.get('https://www.pathofexile.com/character-window/'
+                                    f'get-characters?accountName={account}') as resp:
+            chars = await resp.json()
+        if not isinstance(chars, list):
+            return await ctx.error("Private account or incorrect account name.")
+        char_dict = {}
+
+        for char in chars:
+            if char['league'] not in char_dict:
+                char_dict[char['league']] = list()
+            char_dict[char['league']].append(char)
+
+        em = Embed(title=f"{account}'s Characters", color=self.bot.user_color)
+        for league in char_dict:
+            league_chars = []
+            for char in char_dict[league]:
+                txt = f"{char['name']} | {char['class']} | Level {char['level']}"
+                league_chars.append(txt)
+            em.add_field(name=league, value = '\n'.join(league_chars))
+
+        await ctx.send(embed=em)
 
     @commands.command()
     async def charinfo(self, ctx, character=None, garb=None):
