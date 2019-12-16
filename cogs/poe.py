@@ -48,34 +48,23 @@ class PathOfExile(Cog):
         """ Invite the bot. """
         em = Embed(title="Invite Zana", color=self.bot.user_color, url="https://discordapp.com/api/oauth2/authorize?client_id=474597240854282241&permissions=387136&scope=bot")
         await ctx.send(embed=em)
-        
-    @commands.command()
-    async def link(self, ctx):
-        """ Link items decorated with [[]] in chat """
-        item_matches = self.re.findall(ctx.message.content)
-        if not item_matches:
-            return
-        tasks = []
-        print(item_matches)
 
-        # Because my poe lib is actually completely blocking, i wrote a find_once func and
-        # I just run instances of find_ones in executor + gather
-        for item in item_matches[:5]:
+    async def _item_search(self, ctx, items):
+        tasks = []
+        for item in items:
             tasks.append(self.bot.loop.run_in_executor(None,
                                                        find_one, f"{item.strip('[[').strip(']]')}",
                                                        self.client, self.bot.loop))
         results = await asyncio.gather(*tasks)
 
-        # Results are returned as None for invalid items from find_one, so remove None-s
         results = [x for x in results if x]
-
         new_selections = []
         for result in results:
             if isinstance(result, dict):
                 if len(result['matches']) and len(result['matches']) > 2:
                     em = Embed(title="Item not found",
                                description=f"""Couldn't find anything for *"{result['name']}"*, did you mean:\n """ +
-                                    "\n".join(f'\u2022 *{x[0]}*' for x in result['matches']))
+                                           "\n".join(f'\u2022 *{x[0]}*' for x in result['matches']))
                     msg = await ctx.channel.send(embed=em)
 
                     def check(reaction, user):
@@ -96,6 +85,7 @@ class PathOfExile(Cog):
                         return await msg.delete()
                     new_selections.append(result['matches'][self.reaction_emojis.index(reaction.emoji)][0])
                     await msg.delete()
+
         tasks = []
         print(new_selections)
         for new in new_selections:
@@ -105,6 +95,27 @@ class PathOfExile(Cog):
         new_results = await asyncio.gather(*tasks)
 
         results.extend(new_results)
+
+        return results
+
+    @commands.command()
+    async def link(self, ctx):
+        """ Link items decorated with [[]] in chat """
+        item_matches = self.re.findall(ctx.message.content)
+        if not item_matches:
+            return
+        tasks = []
+        print(item_matches)
+
+        # Because my poe lib is actually completely blocking, i wrote a find_once func and
+        # I just run instances of find_ones in executor + gather
+
+        for item in item_matches[:5]:
+            tasks.append(self.bot.loop.run_in_executor(None,
+                                                       find_one, f"{item.strip('[[').strip(']]')}",
+                                                       self.client, self.bot.loop))
+
+        results = await self._item_search(ctx, item_matches[:5])
 
         images = []
         meta = []
@@ -412,6 +423,7 @@ class PathOfExile(Cog):
         else:
             icon_url = class_icons[stats['class'].lower()]
         info.set_thumbnail(url=icon_url)
+        info.set_footer(text="Don't want your items converted? An admin can disable it using @Zana disable_conversion")
         return info
 
     # The sauce that uploads images to a dump channel in discord to use it as free unlimited image hosting
@@ -576,6 +588,7 @@ class PathOfExile(Cog):
         em = Embed()
         em.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.avatar_url)
         em.set_image(url=upload.attachments[0].url)
+        em.set_footer(text="Don't want your items converted? An admin can disable it using @Zana disable_conversion")
         try:
             await ctx.send(embed=em)
         except:
@@ -696,5 +709,166 @@ class PathOfExile(Cog):
             await ctx.channel.send(file=f)
         except:
             await ctx.error("`Attach Files` permission required")
+
+    async def _search_api(self, ctx, item_plus_league: str=None):
+        if not item_plus_league:
+            return await ctx.error("I need an item to price.")
+
+        leagues = utils.get_active_leagues()
+        league = None
+        matched = False
+
+        if ',' in item_plus_league:
+            league = item_plus_league.split(',')[1].strip().title()
+            for lg in leagues:
+                if league == lg['id']:
+                    matched = True
+                    break
+                elif league == lg['text']:
+                    matched = True
+                    league = lg['id']
+            item = item_plus_league.split(',')[0].strip()
+        else:
+            item = item_plus_league
+
+        if not league or not matched:
+            em = Embed(title="No League Specified" if not league else f"No League named {league}",
+                       description="Specify league by using the command as follows:\n"
+                                   "`@Zana price Kaom's Heart, Metamorph`\nPlease choose a league for this query:\n" +
+                       "\n".join(f'\u2022 *{x["id"]}*' for x in leagues))
+            msg = await ctx.channel.send(embed=em)
+
+            emojis = self.reaction_emojis
+            emojis.insert(3, "4\N{COMBINING ENCLOSING KEYCAP}")
+            def check(reaction, user):
+                try:
+                    return reaction.emoji in emojis \
+                           and reaction.message.id == msg.id \
+                           and user.id != self.bot.user.id
+                except:
+                    return False
+
+            for emoji in emojis:
+                await msg.add_reaction(emoji)
+            try:
+                reaction, user = await self.bot.wait_for('reaction_add', check=check, timeout=20)
+            except asyncio.TimeoutError:
+                return await msg.delete()
+            if reaction.emoji == emojis[-1]:
+                return await msg.delete()
+            league = leagues[emojis.index(reaction.emoji)]['id']
+            await msg.delete()
+
+        results = await self._item_search(ctx, [item])
+        return results[0], league
+    @commands.command()
+    async def price(self, ctx, *, item_plus_league: str=None):
+        """ Calculate a fair price for an item in the most common listed currency. """
+        verified_item, league = await self._search_api(ctx, item_plus_league)
+        if isinstance(verified_item, dict):
+            price = utils.item_price(verified_item['matches'][0][0], league).fair_price()
+            iname = verified_item['matches'][0][0]
+        else:
+            price = utils.item_price(verified_item.name, league).fair_price()
+            iname = verified_item.name
+
+        em = Embed(title=f"💰 Fair price: *{iname}*",
+                   description=f"{round(price['value'], 1)} {price['currency']}",
+                   color=self.bot.user_color)
+        return await ctx.send(embed=em)
+
+    @commands.command()
+    async def buy(self, ctx, *, item_plus_league: str=None):
+        """ List the 3 lowest priced items with whisper and price info. """
+        verified_item, league = await self._search_api(ctx, item_plus_league)
+        if isinstance(verified_item, dict):
+            price = utils.item_price(verified_item['matches'][0][0], league)
+            iname = verified_item['matches'][0][0]
+        else:
+            price = utils.item_price(verified_item.name, league)
+            iname = verified_item.name
+        lowest = price.lowest()
+        print(lowest)
+        tasks = []
+        for item in lowest:
+            tasks.append(self.bot.loop.run_in_executor(None,
+                                                       utils.parse_poe_char_api, {'items': [item['item']]},
+                                                       self.client, True))
+        results = await asyncio.gather(*tasks)
+        files = {'files': [],
+                 'indexes': []}
+        sockets = {'sockets': [],
+                   'indexes': []}
+        for ind, item in enumerate(results):
+            #print(item)
+            if not item['equipped']['items_objects']:
+                continue
+            if 'sockets' in lowest[ind]['item'] and lowest[ind]['item']['sockets']:
+                socks = {}
+                for sock in lowest[ind]['item']['sockets']:
+                    if not sock['group'] in socks:
+                        socks[sock['group']] = []
+                    socks[sock['group']].append(sock['sColour'])
+                sock_strs = []
+                for val in socks.values():
+                    sock_strs.append('-'.join(val))
+                sockets['sockets'].append('\n'.join(sock_strs))
+                sockets['indexes'].append(ind)
+            result = item['equipped']['items_objects']
+            if not isinstance(result, PassiveSkill):
+                if result.base == "Prophecy":
+                    flavor = 'prophecy'
+                elif 'gem' in result.tags:
+                    flavor = 'gem'
+                elif 'divination_card' in result.tags:
+                    # Lib has a different render function for div cards as they don't fit the standard stats and sorting
+                    # method, might change in the future but would be extremely unneat code-wise.
+                    r = utils.ItemRender('unique')
+                    img = r.render_divcard(result)
+                else:
+                    flavor = result.rarity
+            else:
+                flavor = 'normal'
+            if 'divination_card' not in result.tags:
+                r = utils.ItemRender(flavor)
+                img = r.render(result)
+            image_fp = BytesIO()
+            img.save(image_fp, 'png')
+            image_fp.seek(0)
+            files['files'].append(File(image_fp, filename=f"{result.name.lower().replace(' ','')}{ind}.png"))
+            files['indexes'].append(ind)
+
+        if files:
+            upload = await self.bot.dump_channel.send(files=files['files'])
+            upload.attachments.reverse()
+        else:
+            upload = None
+        #print(files)
+        embed_dict = dict.fromkeys(self.reaction_emojis[:-1])
+        #print(embed_dict)
+        price = ', '.join([f"*{entry['listing']['price']['amount']} "
+                           f"{entry['listing']['price']['currency']}*" for entry in lowest])
+        sockets['sockets'].reverse()
+        print(sockets, files)
+        for ind, react in enumerate(embed_dict):
+            em = Embed(title=f"Lowest 3 Listings for {iname}",
+                       description=f"Prices: {price}", color=self.bot.user_color)
+            try:
+                if ind in files['indexes']:
+                    em.set_image(url=upload.attachments.pop().url)
+            except (IndexError, AttributeError):
+                pass
+
+            em.add_field(name="Price", value=f"{lowest[ind]['listing']['price']['amount']} "
+                                             f"{lowest[ind]['listing']['price']['currency']}")
+            if ind in sockets['indexes']:
+                em.add_field(name="Sockets", value=sockets['sockets'].pop())
+            em.add_field(name="Whisper", value=f"`{lowest[ind]['listing']['whisper']}`")
+            embed_dict[react] = em
+
+        #print(embed_dict)
+
+        await responsive_embed(self.bot, embed_dict, ctx, timeout=60*5, use_dict_emojis=True)
+
 def setup(bot):
     bot.add_cog(PathOfExile(bot))
