@@ -508,16 +508,20 @@ class PathOfExile(Cog):
             for char in char_dict[league]:
                 txt = f"{char['name']} | {char['class']} | Level {char['level']}"
                 league_chars.append(txt)
-            em.add_field(name=league, value = '\n'.join(league_chars))
+            fmt_chars = '\n'.join(league_chars)
+            if len(fmt_chars) <= 1000:
+                em.add_field(name=league, value = fmt_chars)
+            else:
+                em.add_field(name=league, value = '\n'.join(league_chars[:(len(league_chars)//2)-1]))
+                em.add_field(name=f"{league} (cont.)", value='\n'.join(league_chars[(len(league_chars)//2) - 1:]))
 
+        print()
         await ctx.send(embed=em)
 
     @commands.command()
-    async def charinfo(self, ctx, character=None, garb=None):
+    async def charinfo(self, ctx, character=None):
         """ Fetch character info for provided account and character """
-        if garb:
-            character = garb
-            await ctx.error("The command only needs your character name in the format\n`@Zana <charname>` - continuing regardless")
+
         if not character:
             return await ctx.error("Incorrect number of arguments supplied!\n`@Zana charinfo <charname>")
 
@@ -578,6 +582,7 @@ class PathOfExile(Cog):
         #print(d['Chat Item'].energy_shield)
         #utils.modify_base_stats(d['Chat Item'])
         #print(d['Chat Item'].energy_shield)
+        print("qual, ", d['Chat Item'].quality)
         renderer = utils.ItemRender(d['Chat Item'].rarity)
         img = renderer.render(d['Chat Item'])
         image_fp = BytesIO()
