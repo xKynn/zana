@@ -357,6 +357,8 @@ class PathOfExile(Cog):
         if pob_party:
             #print("yes party")
             info.description = f"[*Open in pob.party*]({pob_party})"
+        else:
+            info.description = ""
         if pob:
             if stats['ascendancy'] != "None":
                 info.title = f"Level {stats['level']} {stats['class']}: {stats['ascendancy']}"
@@ -564,25 +566,45 @@ class PathOfExile(Cog):
     async def pob(self, ctx):
         """ Fetch character info for valid pob pastebin links posted in chat """
         # Pastebin util is from another discord pob parsing bot, why re-invent the wheel i guess?
-        paste_keys = pastebin.fetch_paste_key(ctx.message.content)
-        if not paste_keys: return
-        xml = None
-        paste_key = paste_keys[0]
-        try:
-            xml = await self.bot.loop.run_in_executor(None, pastebin.get_as_xml, paste_key)
-        except:
-            return
-        if not xml: return
-        raw = await self.bot.loop.run_in_executor(None, pastebin.get_raw_data, f"https://pastebin.com/raw/{paste_key}")
-        #print(raw)
-        async with self.bot.ses.post("https://pob.party/kv/put?ver=latest", data=raw) as resp:
+        if "pastebin.com/" in ctx.message.content:
+            paste_keys = pastebin.fetch_paste_key(ctx.message.content)
+            if not paste_keys: return
+            xml = None
+            paste_key = paste_keys[0]
             try:
-                party_resp = await resp.json()
+                xml = await self.bot.loop.run_in_executor(None, pastebin.get_as_xml, paste_key)
             except:
-                party_resp = None
-        if party_resp:
-            party_url = f"https://pob.party/share/{party_resp['url']}"
+                return
+            if not xml: return
+            raw = await self.bot.loop.run_in_executor(None, pastebin.get_raw_data, f"https://pastebin.com/raw/{paste_key}")
+            #print(raw)
+            async with self.bot.ses.post("https://pob.party/kv/put?ver=latest", data=raw) as resp:
+                try:
+                    party_resp = await resp.json()
+                except:
+                    party_resp = None
+            if party_resp:
+                party_url = f"https://pob.party/share/{party_resp['url']}"
+            else:
+                party_url = None
         else:
+            url = None
+            for part in ctx.message.content.split(" "):
+                if "pob.party/share/" in part:
+                    url = part
+                    break
+            if not url:
+                return
+
+            key = url.split('/')[-1]
+            async with self.bot.ses.get(f"https://pob.party/kv/get/{key}") as resp:
+                try:
+                    party_resp = await resp.json()
+                except:
+                    party_resp = None
+            if not party_resp:
+                return
+            xml = pastebin.decode_to_xml(party_resp['data']).decode('utf-8')
             party_url = None
         #print(party_url)
         stats = await self.bot.loop.run_in_executor(None, cache_pob_xml, xml, self.client)
