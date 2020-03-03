@@ -8,6 +8,7 @@ from utils.server_config import ServerConfig
 from poe.exceptions import OutdatedPoBException
 from poe.exceptions import AbsentItemBaseException
 
+
 class Zana(commands.Bot):
     def __init__(self, *args, **kwargs):
         self.description = 'To be continued'
@@ -85,6 +86,8 @@ class Zana(commands.Bot):
 
         elif ctx.message.content.startswith("Rarity:"):
             try:
+                if "personal Map Device" in ctx.message.content:
+                    return
                 if str(ctx.guild.id) in self.server_config.conf and \
                         self.server_config.conf[str(ctx.guild.id)].get('convert'):
                     return
