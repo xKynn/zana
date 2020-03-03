@@ -168,8 +168,16 @@ class PathOfExile(Cog):
                     except:
                         pass
                     if result.drop.areas:
-                        meta.append({'name': f"{result.name} Drop Locations",
-                                     'value': '\n'.join([f'\u2022 {x}' for x in result.drop.areas.split(',')])})
+                        txt =  '\n'.join([f'\u2022 {x}' for x in result.drop.areas.split(',')])
+                        if len(txt) <= 1024:
+                            meta.append({'name': f"{result.name} Drop Locations",
+                                         'value': txt})
+                        else:
+                            loc_list = result.drop.areas.split(',')
+                            txt = '\n'.join([f'\u2022 {x}' for x in loc_list[:(len(loc_list) // 2) - 1]])
+                            txt += f"\n[...More](http://pathofexile.gamepedia.com/{quote_plus(result.name).replace('+', '%20')})"
+                            meta.append({'name': f"{result.name} Drop Locations",
+                                         'value': txt})
 
                     continue
                 else:
