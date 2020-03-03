@@ -344,8 +344,11 @@ class PathOfExile(Cog):
             return None
 
     # Make standard first page of embed, differes for pob and charinfo, as the bool kwarg says
-    async def _info_dict(self, stats, pob=True):
+    async def _info_dict(self, stats, pob=True, pob_party=None):
         info = Embed(color=self.bot.user_color)
+        if pob_party:
+            #print("yes party")
+            info.description = f"[*Open in pob.party*]({pob_party})"
         if pob:
             if stats['ascendancy'] != "None":
                 info.title = f"Level {stats['level']} {stats['class']}: {stats['ascendancy']}"
@@ -356,8 +359,8 @@ class PathOfExile(Cog):
             info.description = f"{stats['league']} League"
 
         if pob:
-            info.description = \
-            f"𝐀𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬: Str: {stats['str']} **|** "\
+            info.description += \
+            f"\n\n𝐀𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬: Str: {stats['str']} **|** "\
             f"Dex: {stats['dex']} **|** "\
             f"Int: {stats['int']}\n"\
             f"𝐂𝐡𝐚𝐫𝐠𝐞𝐬: Power: {stats['power_charges']} **|** " \
@@ -423,12 +426,12 @@ class PathOfExile(Cog):
         else:
             icon_url = class_icons[stats['class'].lower()]
         info.set_thumbnail(url=icon_url)
-        info.set_footer(text="Don't want your items converted? An admin can disable it using @Zana disable_conversion")
+        info.set_footer(text="Don't want your pastebins converted? An admin can disable it using @Zana disable_pastebin")
         return info
 
     # The sauce that uploads images to a dump channel in discord to use it as free unlimited image hosting
     # Then link those images in my embeds fluently and form responsive_embed
-    async def make_responsive_embed(self, stats, ctx, pob=True):
+    async def make_responsive_embed(self, stats, ctx, pob=True, party_url=None):
         responsive_dict = {}
         files = []
         weapons_dict = await self._twoslot_pob(stats['equipped'], 'Weapon')
@@ -442,7 +445,7 @@ class PathOfExile(Cog):
         jewels_dict = self._jewels_pob(stats)
         flasks_dict = self._flasks_pob(stats['equipped'])
         gem_groups_dict = self._gem_groups(stats['equipped'])
-        responsive_dict['info'] = await self._info_dict(stats, pob)
+        responsive_dict['info'] = await self._info_dict(stats, pob, pob_party=party_url)
         #print(responsive_dict['info'].fields)
         if weapons_dict:
             responsive_dict['weapon'] = weapons_dict['embed']
@@ -562,8 +565,20 @@ class PathOfExile(Cog):
         except:
             return
         if not xml: return
+        raw = await self.bot.loop.run_in_executor(None, pastebin.get_raw_data, f"https://pastebin.com/raw/{paste_key}")
+        #print(raw)
+        async with self.bot.ses.post("https://pob.party/kv/put?ver=latest", data=raw) as resp:
+            try:
+                party_resp = await resp.json()
+            except:
+                party_resp = None
+        if party_resp:
+            party_url = f"https://pob.party/share/{party_resp['url']}"
+        else:
+            party_url = None
+        #print(party_url)
         stats = await self.bot.loop.run_in_executor(None, cache_pob_xml, xml, self.client)
-        await self.make_responsive_embed(stats, ctx)
+        await self.make_responsive_embed(stats, ctx, party_url=party_url)
 
     @commands.command()
     async def convert(self, ctx):
