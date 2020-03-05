@@ -650,7 +650,7 @@ class PathOfExile(Cog):
 
     @commands.command()
     async def roll(self, ctx, * ,item: str=None):
-        """ Roll any Unique item and test your luck! """
+        """ 'Divine' any Unique item and test your luck! """
         if not item:
             return await ctx.error("The correct format to use `roll` is\n`@Zana <itemname>`")
         unique = await self.bot.loop.run_in_executor(None,find_one, item, self.client, self.bot.loop)

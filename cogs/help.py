@@ -27,7 +27,7 @@ class Help(Cog):
                                        "ds `Manage Messages` to delete user's post\n\n"
                                        '**Permissions:** The permissions required to function :-\n'
                                        '`Send Messages`, `Manage Messages`, `Embed Links`, `Read Message History`,'
-                                       '`Attach Files`, `Read Message History`, `Add Reactions`, `Use External Emojis`\n'
+                                       '`Attach Files`, `Add Reactions`, `Use External Emojis`\n'
                                        '--\nTo get help or more information on a specific command, use:\n'
                                        f'`{bot_prefix}help <command name>`\n'
                                        '--\nYou can also join the semi-support server [here](https://discord.gg/hUWQ5fJ)\n'
@@ -40,14 +40,16 @@ class Help(Cog):
                                        'discord/electron regarding text formatting in embedded data.',
                            color=self.color)
 
-        em.set_footer(text="Contact me at Demo#7645")
+        em.set_footer(text="Contact me at Demo#7645 with any questions or suggestions")
 
         # This can't go in the init because help isn't loaded last & thus misses some commands
-        em.add_field(name="Commands", value=' • '+'\n • '.join(f"***{c.name}*** - {c.short_doc}" for c in self.bot.commands if
-                                                               c.name not in ['pob', 'link', 'convert']))
-        try:
+        cm_list = [f"***{c.name}*** - {c.short_doc}" for c in self.bot.commands if
+                                                               c.name not in ['pob', 'link', 'convert']]
+        em.add_field(name="Commands", value=' • '+'\n • '.join(cm_list[(len(cm_list)//2)-1:]))
+        em.add_field(name="Commands (cont.)", value=' • ' + '\n • '.join(cm_list[:(len(cm_list)//2) - 1]))
+        if 1:
             await ctx.send(embed=em)
-        except:
+        else:
             await ctx.send("`Embed Links` permission is required to see the help!")
 
     @help.command(name='command', aliases=['cmd', 'commands'])
