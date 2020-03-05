@@ -354,6 +354,7 @@ class PathOfExile(Cog):
     # Make standard first page of embed, differes for pob and charinfo, as the bool kwarg says
     async def _info_dict(self, stats, pob=True, pob_party=None):
         info = Embed(color=self.bot.user_color)
+        print(stats)
         if pob_party:
             #print("yes party")
             info.description = f"[*Open in pob.party*]({pob_party})"
@@ -381,18 +382,18 @@ class PathOfExile(Cog):
                 info.description += f"\n𝐁𝐚𝐧𝐝𝐢𝐭: {stats['bandit']}"
 
             offensive_stats_text =\
-            f"𝐓𝐨𝐭𝐚𝐥 𝐃𝐏𝐒: {stats['total_dps']}\n"\
-            f"𝐂𝐫𝐢𝐭 𝐂𝐡𝐚𝐧𝐜𝐞: {stats['crit_chance']}\n"\
-            f"𝐄𝐟𝐟𝐞𝐜𝐭𝐢𝐯𝐞 𝐂𝐫𝐢𝐭 𝐂𝐡𝐚𝐧𝐜𝐞: {stats['crit_chance']}\n"\
+            f"𝐓𝐨𝐭𝐚𝐥 𝐃𝐏𝐒: {float(stats['total_dps']):,.1f}\n"\
+            f"𝐂𝐫𝐢𝐭 𝐂𝐡𝐚𝐧𝐜𝐞: {float(stats['crit_chance']):.1f}%\n"\
+            f"𝐄𝐟𝐟𝐞𝐜𝐭𝐢𝐯𝐞 𝐂𝐫𝐢𝐭 𝐂𝐡𝐚𝐧𝐜𝐞: {float(stats['effective_crit_chance']):.1f}%\n"\
             f"𝐂𝐡𝐚𝐧𝐜𝐞 𝐭𝐨 𝐇𝐢𝐭: {stats['chance_to_hit']}%"
             info.add_field(name="Offense", value=offensive_stats_text)
 
             defensive_stats_text =\
             f"𝐋𝐢𝐟𝐞: {stats['life']}\n"\
-            f"𝐋𝐢𝐟𝐞 𝐑𝐞𝐠𝐞𝐧: {stats['life_regen']}\n"\
+            f"𝐋𝐢𝐟𝐞 𝐑𝐞𝐠𝐞𝐧: {float(stats['life_regen']):.1f}\n"\
             f"𝐄𝐧𝐞𝐫𝐠𝐲 𝐒𝐡𝐢𝐞𝐥𝐝: {stats['es']}\n"\
-            f"𝐄𝐒 𝐑𝐞𝐠𝐞𝐧: {stats['es_regen']}\n"\
-            f"𝐄𝐯𝐚𝐬𝐢𝐨𝐧: {stats['degen']}"
+            f"𝐄𝐒 𝐑𝐞𝐠𝐞𝐧: {float(stats['es_regen']):.1f}\n"\
+            f"𝐃𝐞𝐠𝐞𝐧: {float(stats['degen']):.1f}"
             info.add_field(name="Defense", value=defensive_stats_text, inline=True)
 
             mitigation_stats_text=\
