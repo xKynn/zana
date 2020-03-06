@@ -38,7 +38,7 @@ class Zana(commands.Bot):
         self.user_color = 0x781D1D
 
         self.server_config = ServerConfig('server_config.json')
-        print(self.server_config.conf)
+        #print(self.server_config.conf)
 
     def run(self):
         super().run(self.config['token'])
@@ -54,13 +54,13 @@ class Zana(commands.Bot):
         await self.wait_until_ready()
         ctx = await self.get_context(message, cls=ZanaContext)
         if '[[' in ctx.message.content and ']]' in ctx.message.content:
-            if 1:
+            try:
                 async with message.channel.typing():
                     await self.find_command.invoke(ctx)
-            else:
+            except:
                 await ctx.error("There was an error with your request.")
                 await self.report(ctx.message.content)
-        elif 'pastebin.com/' in ctx.message.content:
+        elif 'pastebin.com/' in ctx.message.content or "pob.party/share/" in ctx.message.content:
             if str(ctx.guild.id) in self.server_config.conf and \
                     self.server_config.conf[str(ctx.guild.id)].get('disable_pastebin'):
                 return

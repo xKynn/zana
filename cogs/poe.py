@@ -87,7 +87,7 @@ class PathOfExile(Cog):
                     await msg.delete()
 
         tasks = []
-        print(new_selections)
+        ##print(new_selections)
         for new in new_selections:
             tasks.append(self.bot.loop.run_in_executor(None,
                                                        find_one, new,
@@ -105,7 +105,7 @@ class PathOfExile(Cog):
         if not item_matches:
             return
         tasks = []
-        print(item_matches)
+        ##print(item_matches)
 
         # Because my poe lib is actually completely blocking, i wrote a find_once func and
         # I just run instances of find_ones in executor + gather
@@ -120,7 +120,7 @@ class PathOfExile(Cog):
         images = []
         meta = []
 
-        print(results)
+        ##print(results)
 
         for result in results:
             if isinstance(result, dict):
@@ -134,7 +134,7 @@ class PathOfExile(Cog):
                     flavor = 'prophecy'
                 elif 'gem' in result.tags:
                     flavor = 'gem'
-                    print(result.vendors)
+                    ##print(result.vendors)
                     dt = {'name': f"{result.name} vendors"}
                     venstr = ""
                     for vendor in result.vendors:
@@ -214,7 +214,7 @@ class PathOfExile(Cog):
         image_fp = BytesIO()
         img.save(image_fp, 'png')
         image_fp.seek(0)
-        print("Image ready")
+        #print("Image ready")
 
         em = Embed(color=self.bot.user_color)
         links = []
@@ -258,7 +258,7 @@ class PathOfExile(Cog):
             image_fp = BytesIO()
             img.save(image_fp, 'png')
             #img.show()
-            #print(image_fp.tell())
+            ##print(image_fp.tell())
             image_fp.seek(0)
             file = File(image_fp, filename=f'{itemtype.lower()}.png')
             # upload = await self.bot.dump_channel.send(file=file)
@@ -287,12 +287,12 @@ class PathOfExile(Cog):
             img = rwp.render(equip[wp_n]['object'])
             image_fp = BytesIO()
             img.save(image_fp, 'png')
-            #print(image_fp.tell())
+            ##print(image_fp.tell())
             image_fp.seek(0)
             file = File(image_fp, filename=f"{itemtype.lower().replace(' ','')}.png")
             # upload = await self.bot.dump_channel.send(file=file)
             # embed.set_image(url=upload.attachments[0].url)
-            #print(equip[wp_n])
+            ##print(equip[wp_n])
             if 'gems' in equip[wp_n] and equip[wp_n]['gems']:
                 val_list = []
                 for gem in equip[wp_n]['gems']:
@@ -354,9 +354,9 @@ class PathOfExile(Cog):
     # Make standard first page of embed, differes for pob and charinfo, as the bool kwarg says
     async def _info_dict(self, stats, pob=True, pob_party=None):
         info = Embed(color=self.bot.user_color)
-        print(stats)
+        ##print(stats)
         if pob_party:
-            #print("yes party")
+            ##print("yes party")
             info.description = f"[*Open in pob.party*]({pob_party})"
         else:
             info.description = ""
@@ -386,7 +386,7 @@ class PathOfExile(Cog):
             f"𝐂𝐫𝐢𝐭 𝐂𝐡𝐚𝐧𝐜𝐞: {float(stats['crit_chance']):.1f}%\n"\
             f"𝐄𝐟𝐟𝐞𝐜𝐭𝐢𝐯𝐞 𝐂𝐫𝐢𝐭 𝐂𝐡𝐚𝐧𝐜𝐞: {float(stats['effective_crit_chance']):.1f}%\n"\
             f"𝐂𝐡𝐚𝐧𝐜𝐞 𝐭𝐨 𝐇𝐢𝐭: {stats['chance_to_hit']}%"
-            info.add_field(name="Offense", value=offensive_stats_text)
+            info.add_field(name=f"Offense: {stats['main_skill']}", value=offensive_stats_text)
 
             defensive_stats_text =\
             f"𝐋𝐢𝐟𝐞: {stats['life']}\n"\
@@ -457,7 +457,7 @@ class PathOfExile(Cog):
         flasks_dict = self._flasks_pob(stats['equipped'])
         gem_groups_dict = self._gem_groups(stats['equipped'])
         responsive_dict['info'] = await self._info_dict(stats, pob, pob_party=party_url)
-        #print(responsive_dict['info'].fields)
+        ##print(responsive_dict['info'].fields)
         if weapons_dict:
             responsive_dict['weapon'] = weapons_dict['embed']
             files.append(weapons_dict['file'])
@@ -529,7 +529,7 @@ class PathOfExile(Cog):
                 em.add_field(name=league, value = '\n'.join(league_chars[:(len(league_chars)//2)-1]))
                 em.add_field(name=f"{league} (cont.)", value='\n'.join(league_chars[(len(league_chars)//2) - 1:]))
 
-        print()
+        #print()
         await ctx.send(embed=em)
 
     @commands.command()
@@ -578,7 +578,7 @@ class PathOfExile(Cog):
                 return
             if not xml: return
             raw = await self.bot.loop.run_in_executor(None, pastebin.get_raw_data, f"https://pastebin.com/raw/{paste_key}")
-            #print(raw)
+            ##print(raw)
             async with self.bot.ses.post("https://pob.party/kv/put?ver=latest", data=raw) as resp:
                 try:
                     party_resp = await resp.json()
@@ -607,7 +607,7 @@ class PathOfExile(Cog):
                 return
             xml = pastebin.decode_to_xml(party_resp['data']).decode('utf-8')
             party_url = None
-        #print(party_url)
+        ##print(party_url)
         stats = await self.bot.loop.run_in_executor(None, cache_pob_xml, xml, self.client)
         await self.make_responsive_embed(stats, ctx, party_url=party_url)
 
@@ -619,16 +619,16 @@ class PathOfExile(Cog):
         try:
             pob_item = utils.parse_pob_item(ctx.message.content)
         except:
-            print(ctx.message.content)
+            #print(ctx.message.content)
             return
         d = {}
-        print(pob_item)
+        #print(pob_item)
         await self.bot.loop.run_in_executor(None, utils._get_wiki_base, pob_item, d, self.client, "Chat Item")
-        #print(d)
-        #print(d['Chat Item'].energy_shield)
+        ##print(d)
+        ##print(d['Chat Item'].energy_shield)
         #utils.modify_base_stats(d['Chat Item'])
-        #print(d['Chat Item'].energy_shield)
-        print("qual, ", d['Chat Item'].quality)
+        ##print(d['Chat Item'].energy_shield)
+        #print("qual, ", d['Chat Item'].quality)
         renderer = utils.ItemRender(d['Chat Item'].rarity)
         img = renderer.render(d['Chat Item'])
         image_fp = BytesIO()
@@ -652,7 +652,7 @@ class PathOfExile(Cog):
     async def roll(self, ctx, * ,item: str=None):
         """ 'Divine' any Unique item and test your luck! """
         if not item:
-            return await ctx.error("The correct format to use `roll` is\n`@Zana <itemname>`")
+            return await ctx.error("The correct format to use `roll` is\n`@Zana roll <itemname>`")
         unique = await self.bot.loop.run_in_executor(None,find_one, item, self.client, self.bot.loop)
         unique = copy.copy(unique)
         if not unique:
@@ -696,7 +696,7 @@ class PathOfExile(Cog):
             if '(' in explicit and ')' in explicit and 'hidden' not in explicit.lower():
                 matches = self.rng.findall(explicit)
                 match_dict = {}
-                print(matches)
+                #print(matches)
                 for match in matches:
                     stat = match[1:-1]
                     separator = stat.find('-', 1)
@@ -725,11 +725,11 @@ class PathOfExile(Cog):
         unique.implicits = escaped_implicits
         base.explicits = escaped_explicits
         unique.explicits = escaped_explicits
-        print(unique.tags)
+        #print(unique.tags)
         try:
             utils.modify_base_stats(base)
             if 'weapon' in unique.tags:
-                print("is wep")
+                #print("is wep")
                 unique.attack_speed = base.attack_speed
                 unique.critical_chance = base.critical_chance
                 unique.range = base.range
@@ -839,7 +839,7 @@ class PathOfExile(Cog):
             price = utils.item_price(verified_item.name, league)
             iname = verified_item.name
         lowest = price.lowest()
-        print(lowest)
+        #print(lowest)
         tasks = []
         for item in lowest:
             tasks.append(self.bot.loop.run_in_executor(None,
@@ -851,7 +851,7 @@ class PathOfExile(Cog):
         sockets = {'sockets': [],
                    'indexes': []}
         for ind, item in enumerate(results):
-            #print(item)
+            ##print(item)
             if not item['equipped']['items_objects']:
                 continue
             if 'sockets' in lowest[ind]['item'] and lowest[ind]['item']['sockets']:
@@ -894,13 +894,13 @@ class PathOfExile(Cog):
             upload.attachments.reverse()
         else:
             upload = None
-        #print(files)
+        ##print(files)
         embed_dict = dict.fromkeys(self.reaction_emojis[:-1])
-        #print(embed_dict)
+        ##print(embed_dict)
         price = ', '.join([f"*{entry['listing']['price']['amount']} "
                            f"{entry['listing']['price']['currency']}*" for entry in lowest])
         sockets['sockets'].reverse()
-        print(sockets, files)
+        #print(sockets, files)
         for ind, react in enumerate(embed_dict):
             em = Embed(title=f"Lowest 3 Listings for {iname}",
                        description=f"Prices: {price}", color=self.bot.user_color)
@@ -917,7 +917,7 @@ class PathOfExile(Cog):
             em.add_field(name="Whisper", value=f"`{lowest[ind]['listing']['whisper']}`")
             embed_dict[react] = em
 
-        #print(embed_dict)
+        ##print(embed_dict)
 
         await responsive_embed(self.bot, embed_dict, ctx, timeout=60*5, use_dict_emojis=True)
 
