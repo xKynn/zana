@@ -91,8 +91,7 @@ class Zana(commands.Bot):
                 if str(ctx.guild.id) in self.server_config.conf and \
                         self.server_config.conf[str(ctx.guild.id)].get('convert'):
                     return
-                async with message.channel.typing():
-                    await self.convert_command.invoke(ctx)
+                self.loop.create_task(self.convert_command.invoke(ctx))
                 try:
                     await ctx.message.delete()
                 except:

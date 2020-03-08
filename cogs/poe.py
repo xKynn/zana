@@ -636,12 +636,35 @@ class PathOfExile(Cog):
         image_fp.seek(0)
         file = File(image_fp, filename=f"converted.png")
         upload = await self.bot.dump_channel.send(file=file)
-        em = Embed()
+        em = Embed(description="*Click the reaction below for raw item text.*")
         em.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.avatar_url)
         em.set_image(url=upload.attachments[0].url)
-        em.set_footer(text="Don't want your items converted? An admin can disable it using @Zana disable_conversion")
+        em.set_footer(text="Don't want your items converted? An admin can disable it using @Zana disable_conversion.")
         try:
-            await ctx.send(embed=em)
+            embed_msg = await ctx.send(embed=em)
+            env_emoji = '📩'
+            try:
+                await embed_msg.add_reaction(env_emoji)
+            except:
+                return
+            def check(reaction, user):
+                try:
+                    return reaction.emoji == env_emoji\
+                           and reaction.message.id == embed_msg.id\
+                           and user.id != self.bot.user.id
+                except:
+                    return False
+            while True:
+                reaction, user = await self.bot.wait_for('reaction_add', check=check)
+                try:
+                    await embed_msg.remove_reaction(reaction.emoji, user)
+                except:
+                    pass
+
+                try:
+                    await user.send(f"```\n{ctx.message.content}\n```")
+                except:
+                    pass
         except:
             try:
                 await ctx.send(f"**{ctx.author.name}#{ctx.author.discriminator}**:\n", file=file)
