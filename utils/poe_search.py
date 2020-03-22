@@ -1,14 +1,14 @@
-import poe.utils as utils
-import threading
 import json
+import threading
 
+import poe.utils as utils
+from cachetools import cached
 from nltk import bigrams
 
-from cachetools import cached
 from .cache import cache
 
-with open('utils/items.json') as f:
-    items = json.load(f)
+with open('utils/items.json') as file:
+    items = json.load(file)
 
 
 def calc_bigrams(name, item, matches):
@@ -25,29 +25,27 @@ class POEClientException(Exception):
 
 
 @cached(cache)
-def find_one(name: str, client, loop):
-    if 1:
-        item = client.find_items({'_pageName': name}, limit=1)
+def find_one(name, client):
+    item = client.find_items({'_pageName': name}, limit=1)
+    if not item:
+        item = client.find_passives({'name': name}, limit=1)
         if not item:
-            item = client.find_passives({'name': name}, limit=1)
-            if not item:
-                matches = {}
-                processes = []
-                name_tri = [x for x in bigrams(name.lower())]
-                for item_name in items["names"]:
-                    p = threading.Thread(target=calc_bigrams, args=(name_tri, item_name, matches, ))
-                    processes.append(p)
-                    p.start()
+            matches = {}
+            processes = []
+            name_tri = [x for x in bigrams(name.lower())]
+            for item_name in items["names"]:
+                p = threading.Thread(target=calc_bigrams, args=(name_tri, item_name, matches,))
+                processes.append(p)
+                p.start()
 
-                for process in processes:
-                    process.join()
+            for process in processes:
+                process.join()
 
-                #return {"matches": sorted(matches.items(), key=lambda it: it[1])[:3], "name": name.replace("%", "")}
-                return {"matches": sorted(matches.items(), key= lambda kv: kv[1], reverse=True)[:3], "name": name}
+            # return {"matches": sorted(matches.items(), key=lambda it: it[1])[:3], "name": name.replace("%", "")}
+            return {"matches": sorted(matches.items(), key=lambda kv: kv[1], reverse=True)[:3], "name": name}
 
-        return item[0]
-    else:
-        return POEClientException
+    return item[0]
+
 
 @cached(cache)
 def cache_pob_xml(xml, client):

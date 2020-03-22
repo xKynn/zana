@@ -1,14 +1,12 @@
-
 import base64
 import re
 import urllib.request
 import zlib
 
-
-'''
+"""
 Original from: https://github.com/aggixx/PoBPreviewBot/blob/master/util.py 
             && https://github.com/aggixx/PoBPreviewBot/blob/master/pastebin.py
-'''
+"""
 
 
 def fetch_paste_key(content):
@@ -34,7 +32,7 @@ def decode_to_xml(enc):
     xml_str = None
     try:
         xml_str = decode_base64_and_inflate(enc)
-    except:
+    except Exception:
         pass
     return xml_str
 
@@ -42,6 +40,7 @@ def decode_to_xml(enc):
 def get_raw_data(url):
     url = urllib.request.urlopen(url)
     return url.read().decode('utf-8')  # read and encode as utf-8
+
 
 def get_as_xml(paste_key):
     raw_url = 'https://pastebin.com/raw/' + paste_key

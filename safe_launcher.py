@@ -1,16 +1,15 @@
 import json
-from subprocess import STDOUT, Popen
+from subprocess import Popen
 
-with open('config.json') as f:
-    conf = json.load(f)
+with open('config.json') as file:
+    config = json.load(file)
 
-if not 'launch' in conf:
+launch = config.get('launch')
+if not launch:
     print("Needs 'launch' key in config for process start instructions")
     exit()
 
 while True:
-    p = Popen(conf['launch'], shell=True)
+    p = Popen(launch, shell=True)
     p.wait()
-    print("Died")
-
-
+    print('Process died')

@@ -14,8 +14,8 @@ class Zana(commands.Bot):
         self.description = 'To be continued'
 
         # Configs & token
-        with open('config.json') as f:
-            self.config = json.load(f)
+        with open('config.json') as file:
+            self.config = json.load(file)
 
 
         # TODO:
@@ -38,7 +38,6 @@ class Zana(commands.Bot):
         self.user_color = 0x781D1D
 
         self.server_config = ServerConfig('server_config.json')
-        #print(self.server_config.conf)
 
     def run(self):
         super().run(self.config['token'])
@@ -57,7 +56,7 @@ class Zana(commands.Bot):
             try:
                 async with message.channel.typing():
                     await self.find_command.invoke(ctx)
-            except:
+            except Exception:
                 await ctx.error("There was an error with your request.")
                 await self.report(ctx.message.content)
         elif 'pastebin.com/' in ctx.message.content or "pob.party/share/" in ctx.message.content:
@@ -94,11 +93,11 @@ class Zana(commands.Bot):
                 self.loop.create_task(self.convert_command.invoke(ctx))
                 try:
                     await ctx.message.delete()
-                except:
+                except Exception:
                     #Funny thing is, error is an embed, if someone removes that perm,
                     #the error doesn't go through as well
                     await ctx.error("`Manage Messages` required to delete", delete_after=2)
-            except:
+            except Exception:
                 await self.report(ctx.message.content)
         else:
             await self.invoke(ctx)
