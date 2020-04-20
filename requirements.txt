@@ -1,5 +1,7 @@
-PoE.py
+aiohttp
+cachetools
 discord.py
 nltk
-cachetools
 numpy
+Pillow
+PoE.py

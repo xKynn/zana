@@ -1,32 +1,32 @@
 import asyncio
 import copy
-import re
 import random
-import poe.utils as utils
+import re
 import time
-
-from discord import File, Embed
-from urllib.parse import quote_plus
 from io import BytesIO
+from urllib.parse import quote_plus
+
+import poe.utils as utils
+from PIL import Image
+from discord import File, Embed
+from discord.ext import commands
+from discord.ext.commands import Cog
 from poe import Client
 from poe.models import PassiveSkill
-from PIL import Image
-from discord.ext import commands
-from utils.poe_search import find_one, cache_pob_xml
+
 from utils import pastebin
-from utils.poeurl import shrink_tree_url
 from utils.class_icons import class_icons
+from utils.poe_search import find_one, cache_pob_xml
+from utils.poeurl import shrink_tree_url
 from utils.responsive_embed import responsive_embed
-from poe import models
-from discord.ext.commands import Cog
 
 
 class PathOfExile(Cog):
     def __init__(self, bot):
         self.bot = bot
         self.client = Client()
-        self.re = re.compile(r'\[\[[^\]]+\]\]')
-        self.rng = re.compile('\(.+?\)')
+        self.br_re = re.compile(r'\[\[[^\]]+\]\]')  # matches anything wrapped in double brackets
+        self.pr_re = re.compile(r'\(.+?\)')  # matches anything wrapped in parentheses
         self.reaction_emojis = ["{}\N{COMBINING ENCLOSING KEYCAP}".format(num) for num in range(1, 4)]
         self.reaction_emojis.append("❌")
         self.vendor_info = {
@@ -46,15 +46,14 @@ class PathOfExile(Cog):
     @commands.command()
     async def invite(self, ctx):
         """ Invite the bot. """
-        em = Embed(title="Invite Zana", color=self.bot.user_color, url="https://discordapp.com/api/oauth2/authorize?client_id=474597240854282241&permissions=387136&scope=bot")
-        await ctx.send(embed=em)
+        url = "https://discordapp.com/api/oauth2/authorize?client_id=474597240854282241&permissions=387136&scope=bot"
+        embed = Embed(title="Invite Zana", color=self.bot.user_color, url=url)
+        await ctx.send(embed=embed)
 
     async def _item_search(self, ctx, items):
         tasks = []
         for item in items:
-            tasks.append(self.bot.loop.run_in_executor(None,
-                                                       find_one, f"{item.strip('[[').strip(']]')}",
-                                                       self.client, self.bot.loop))
+            tasks.append(self.bot.loop.run_in_executor(None, find_one, item.strip('[]'), self.client, self.bot.loop))
         results = await asyncio.gather(*tasks)
 
         results = [x for x in results if x]
@@ -62,17 +61,18 @@ class PathOfExile(Cog):
         for result in results:
             if isinstance(result, dict):
                 if len(result['matches']) and len(result['matches']) > 2:
-                    em = Embed(title="Item not found",
-                               description=f"""Couldn't find anything for *"{result['name']}"*, did you mean:\n """ +
-                                           "\n".join(f'\u2022 *{x[0]}*' for x in result['matches']))
-                    msg = await ctx.channel.send(embed=em)
+                    desc = f"Couldn't find anything for *\"{result['name']}\"*, did you mean:\n "
+                    desc += "\n".join(f'\u2022 *{x[0]}*' for x in result['matches'])
+                    embed = Embed(title="Item not found", description=desc)
+                    msg = await ctx.channel.send(embed=embed)
 
-                    def check(reaction, user):
+                    def check(_reaction, _user):
                         try:
-                            return reaction.emoji in self.reaction_emojis \
-                                   and reaction.message.id == msg.id \
-                                   and user.id != self.bot.user.id
-                        except:
+                            check_one = _reaction.emoji in self.reaction_emojis
+                            check_two = _reaction.message.id == msg.id
+                            check_thr = _user.id != self.bot.user.id
+                            return all([check_one, check_two, check_thr])
+                        except Exception:
                             return False
 
                     for emoji in self.reaction_emojis:
@@ -87,72 +87,67 @@ class PathOfExile(Cog):
                     await msg.delete()
 
         tasks = []
-        ##print(new_selections)
         for new in new_selections:
-            tasks.append(self.bot.loop.run_in_executor(None,
-                                                       find_one, new,
-                                                       self.client, self.bot.loop))
+            tasks.append(self.bot.loop.run_in_executor(None, find_one, new, self.client, self.bot.loop))
         new_results = await asyncio.gather(*tasks)
-
         results.extend(new_results)
 
         return results
 
     @commands.command()
     async def link(self, ctx):
-        """ Link items decorated with [[]] in chat """
-        item_matches = self.re.findall(ctx.message.content)
+        """ Link items decorated with [[]] in chat. """
+        item_matches = self.br_re.findall(ctx.message.content)
         if not item_matches:
             return
         tasks = []
-        ##print(item_matches)
 
         # Because my poe lib is actually completely blocking, i wrote a find_once func and
-        # I just run instances of find_ones in executor + gather
+        # I just run instances of find_one in executor + gather
 
         for item in item_matches[:5]:
-            tasks.append(self.bot.loop.run_in_executor(None,
-                                                       find_one, f"{item.strip('[[').strip(']]')}",
-                                                       self.client, self.bot.loop))
+            tasks.append(self.bot.loop.run_in_executor(None, find_one, item.strip('[]'), self.client, self.bot.loop))
 
         results = await self._item_search(ctx, item_matches[:5])
 
         images = []
         meta = []
 
-        ##print(results)
-
         for result in results:
             if isinstance(result, dict):
-                if len(result['matches']) and len(result['matches']) < 2:
-                    ctx.message.content = f"[[{result['matches'][0][0]}]]"
+                matches = results.get('matches')
+                if matches and len(matches) < 2:
+                    ctx.message.content = f"[[{matches[0][0]}]]"
                     self.bot.loop.create_task(self.link.invoke(ctx))
                 else:
                     continue
+
+            # TODO: clarify this statement
             if not isinstance(result, PassiveSkill):
                 if result.base == "Prophecy":
                     flavor = 'prophecy'
                 elif 'gem' in result.tags:
                     flavor = 'gem'
-                    ##print(result.vendors)
                     dt = {'name': f"{result.name} vendors"}
-                    venstr = ""
+                    ven_str = ""
                     for vendor in result.vendors:
                         classes = "Available to all classes" if vendor['classes'] == '' else vendor['classes']
                         siosa = True if vendor['act'] == '3' and vendor['classes'] == '' else False
-                        venstr += f"**Act {vendor['act']}** - {classes} - " \
-                                  f"{self.vendor_info[vendor['act']] if not siosa else self.vendor_info['Siosa']}\n"
-                    dt['value'] = venstr
+                        ven_info = self.vendor_info[vendor['act']] if not siosa else self.vendor_info['Siosa']
+                        ven_str += f"**Act {vendor['act']}** - {classes} - {ven_info}\n"
+                    dt['value'] = ven_str
                     meta.append(dt)
+
                 elif 'divination_card' in result.tags:
                     # Lib has a different render function for div cards as they don't fit the standard stats and sorting
                     # method, might change in the future but would be extremely unneat code-wise.
                     r = utils.ItemRender('unique')
                     images.append(r.render_divcard(result))
                     try:
-                        reward = await self.bot.loop.run_in_executor(None,
-                                                                     find_one, result.reward,
-                                                                     self.client, self.bot.loop)
+                        reward = await self.bot.loop.run_in_executor(
+                            None, find_one, result.reward, self.client, self.bot.loop
+                        )
+
                         if reward.base == "Prophecy":
                             i_render = utils.ItemRender('prophecy')
                             images.append(i_render.render(reward))
@@ -165,25 +160,24 @@ class PathOfExile(Cog):
                         else:
                             i_render = utils.ItemRender(reward.rarity)
                             images.append(i_render.render(reward))
-                    except:
+                    except Exception:
                         pass
+
                     if result.drop.areas:
-                        txt =  '\n'.join([f'\u2022 {x}' for x in result.drop.areas.split(',')])
+                        txt = '\n'.join([f'\u2022 {x}' for x in result.drop.areas.split(',')])
                         if len(txt) <= 1024:
-                            meta.append({'name': f"{result.name} Drop Locations",
-                                         'value': txt})
+                            meta.append({'name': f"{result.name} Drop Locations", 'value': txt})
                         else:
                             loc_list = result.drop.areas.split(',')
                             txt = '\n'.join([f'\u2022 {x}' for x in loc_list[:(len(loc_list) // 2) - 1]])
                             txt += f"\n[...More](http://pathofexile.gamepedia.com/{quote_plus(result.name).replace('+', '%20')})"
-                            meta.append({'name': f"{result.name} Drop Locations",
-                                         'value': txt})
-
+                            meta.append({'name': f"{result.name} Drop Locations", 'value': txt})
                     continue
                 else:
                     flavor = result.rarity
             else:
                 flavor = 'normal'
+
             if 'divination_card' not in result.tags:
                 r = utils.ItemRender(flavor)
                 images.append(r.render(result))
@@ -195,110 +189,109 @@ class PathOfExile(Cog):
         # R.I.P that one time where we stitched headhunters for image width of 69700
         if len(results) < 2 and isinstance(results[0], dict):
             return
+
         if len(images) > 1:
             box = [0, 0]
             for image in images:
                 box[0] = box[0] + image.size[0]
                 if image.size[1] > box[1]:
                     box[1] = image.size[1]
-            box[0] = box[0] + (2*len(images))
+            box[0] = box[0] + (2 * len(images))
             img = Image.new('RGBA', box, color='black')
-            #img.show()
             paste_coords = [0, 0]
+
             for image in images:
-                #image.show()
                 img.paste(image.convert('RGBA'), box=paste_coords[:])
                 paste_coords[0] = paste_coords[0] + image.size[0] + 2
+
         else:
             img = images[0]
         image_fp = BytesIO()
         img.save(image_fp, 'png')
         image_fp.seek(0)
-        #print("Image ready")
 
-        em = Embed(color=self.bot.user_color)
+        embed = Embed(color=self.bot.user_color)
         links = []
         for item in results:
-            links.append(f"\u2022 [{item.name}](http://pathofexile.gamepedia.com/{quote_plus(item.name).replace('+','%20')})")
-        em.add_field(name="Wiki Links", value='\n'.join(links))
-        em.set_image(url="attachment://image.png")
-        # Meta basically only used for gems to show vendor info, might add more stuff later, good base to build on
+            links.append(
+                f"\u2022 [{item.name}](http://pathofexile.gamepedia.com/{quote_plus(item.name).replace('+', '%20')})")
+        embed.add_field(name="Wiki Links", value='\n'.join(links))
+        embed.set_image(url="attachment://image.png")
+
+        # Meta is basically only used for gems to show vendor info, might add more stuff later, good base to build on
         if meta:
             for m in meta:
-                em.add_field(name=m['name'], value=m['value'] or "None", inline=True)
+                embed.add_field(name=m['name'], value=m['value'] or "None", inline=True)
+
         try:
-            await ctx.channel.send(file=File(image_fp, filename='image.png'),
-                                   embed=em)
-        except:
+            await ctx.channel.send(file=File(image_fp, filename='image.png'), embed=embed)
+        except Exception:
             await ctx.error("`Attach Files` permission required", delete_after=2)
 
-
-    # So I've designated items 2 categories: twoslot and oneslot
-    # Weapons and rings are 2 slots, basically same type twice, so i can stitch them together in one embed
-    # Oneslot is basic, render and fetch image and gems
-    async def _twoslot_pob(self, equip, itemtype):
+    # I've designated items two categories: one slot and two slot
+    # Weapons and rings are two slots, basically same type twice, so I can stitch them together in one embed
+    # One slot is basic, render and fetch image and gems
+    async def _twoslot_pob(self, equip, item_type):
         embed = Embed(color=self.bot.user_color)
-        if f'{itemtype} 1' in equip or f'{itemtype} 2' in equip:
-            if f'{itemtype} 1' in equip and f'{itemtype} 2' in equip:
-                rwp1 = utils.ItemRender(equip[f'{itemtype} 1']['object'].rarity)
-                wp1 = rwp1.render(equip[f'{itemtype} 1']['object'])
-                rwp2 = utils.ItemRender(equip[f'{itemtype} 2']['object'].rarity)
-                wp2 = rwp2.render(equip[f'{itemtype} 2']['object'])
+        if f'{item_type} 1' in equip or f'{item_type} 2' in equip:
+            if f'{item_type} 1' in equip and f'{item_type} 2' in equip:
+                rwp1 = utils.ItemRender(equip[f'{item_type} 1']['object'].rarity)
+                wp1 = rwp1.render(equip[f'{item_type} 1']['object'])
+                rwp2 = utils.ItemRender(equip[f'{item_type} 2']['object'].rarity)
+                wp2 = rwp2.render(equip[f'{item_type} 2']['object'])
                 box = list(wp1.size)
                 if wp2.size[1] > box[1]:
                     box[1] = wp2.size[1]
                 box[0] = box[0] + wp2.size[0] + 2
                 img = Image.new('RGBA', box, color='black')
                 img.paste(wp1.convert('RGBA'), box=(0, 0))
-                img.paste(wp2.convert('RGBA'), box=(wp1.size[0]+2, 0))
+                img.paste(wp2.convert('RGBA'), box=(wp1.size[0] + 2, 0))
+
             else:
-                wp_n = f'{itemtype} 1' if f'{itemtype} 1' in equip else f'{itemtype} 2'
+                wp_n = f'{item_type} 1' if f'{item_type} 1' in equip else f'{item_type} 2'
                 rwp = utils.ItemRender(equip[wp_n]['object'].rarity)
                 img = rwp.render(equip[wp_n]['object'])
+
             image_fp = BytesIO()
             img.save(image_fp, 'png')
-            #img.show()
-            ##print(image_fp.tell())
             image_fp.seek(0)
-            file = File(image_fp, filename=f'{itemtype.lower()}.png')
-            # upload = await self.bot.dump_channel.send(file=file)
-            # embed.set_image(url=upload.attachments[0].url)
+            file = File(image_fp, filename=f'{item_type.lower()}.png')
 
             slot_list = []
-            if f'{itemtype} 1' in equip and 'gems' in equip[f'{itemtype} 1']:
-                slot_list.append(f'{itemtype} 1')
-            if f'{itemtype} 2' in equip and 'gems' in equip[f'{itemtype} 2']:
-                slot_list.append(f'{itemtype} 2')
+            if f'{item_type} 1' in equip and 'gems' in equip[f'{item_type} 1']:
+                slot_list.append(f'{item_type} 1')
+
+            if f'{item_type} 2' in equip and 'gems' in equip[f'{item_type} 2']:
+                slot_list.append(f'{item_type} 2')
+
             for slot in slot_list:
                 val_list = []
                 for gem in equip[slot]['gems']:
                     val_list.append(f" - {gem['level']}/{gem['quality']} {gem['name']}")
-                value = '\n'.join(val_list)
-                embed.add_field(name=f"{slot} Gems", value=value, inline=True)
+                embed.add_field(name=f"{slot} Gems", value='\n'.join(val_list), inline=True)
+
             return {'file': file, 'embed': embed}
         else:
             return None
 
-    async def _oneslot_pob(self, equip, itemtype):
+    async def _oneslot_pob(self, equip, item_type):
         embed = Embed(color=self.bot.user_color)
-        if itemtype in equip:
-            wp_n = itemtype
+        if item_type in equip:
+            wp_n = item_type
             rwp = utils.ItemRender(equip[wp_n]['object'].rarity)
             img = rwp.render(equip[wp_n]['object'])
             image_fp = BytesIO()
             img.save(image_fp, 'png')
-            ##print(image_fp.tell())
             image_fp.seek(0)
-            file = File(image_fp, filename=f"{itemtype.lower().replace(' ','')}.png")
-            # upload = await self.bot.dump_channel.send(file=file)
-            # embed.set_image(url=upload.attachments[0].url)
-            ##print(equip[wp_n])
+            file = File(image_fp, filename=f"{item_type.lower().replace(' ', '')}.png")
+
             if 'gems' in equip[wp_n] and equip[wp_n]['gems']:
                 val_list = []
                 for gem in equip[wp_n]['gems']:
                     val_list.append(f" - {gem['level']}/{gem['quality']} {gem['name']}")
                 value = '\n'.join(val_list)
                 embed.add_field(name=f"{wp_n} Gems", value=value, inline=True)
+
             return {'file': file, 'embed': embed}
         else:
             return None
@@ -313,10 +306,11 @@ class PathOfExile(Cog):
                 value = '\n'.join(val_list)
                 embed.add_field(name=name, value=value, inline=True)
             return embed
+
         else:
             return None
 
-    # If i ever make a model for flasks in PoE.py this should turn into a much more detailed thing
+    # If I ever make a model for flasks in PoE.py this should turn into a much more detailed thing
     def _flasks_pob(self, equip):
         flasks = []
         for slot in equip:
@@ -354,9 +348,7 @@ class PathOfExile(Cog):
     # Make standard first page of embed, differes for pob and charinfo, as the bool kwarg says
     async def _info_dict(self, stats, pob=True, pob_party=None):
         info = Embed(color=self.bot.user_color)
-        ##print(stats)
         if pob_party:
-            ##print("yes party")
             info.description = f"[*Open in pob.party*]({pob_party})"
         else:
             info.description = ""
@@ -371,50 +363,50 @@ class PathOfExile(Cog):
 
         if pob:
             info.description += \
-            f"\n\n𝐀𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬: Str: {stats['str']} **|** "\
-            f"Dex: {stats['dex']} **|** "\
-            f"Int: {stats['int']}\n"\
-            f"𝐂𝐡𝐚𝐫𝐠𝐞𝐬: Power: {stats['power_charges']} **|** " \
-            f"Frenzy: {stats['frenzy_charges']} **|** " \
-            f"Endurance: {stats['endurance_charges']}"
+                f"\n\n𝐀𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬: Str: {stats['str']} **|** " \
+                f"Dex: {stats['dex']} **|** " \
+                f"Int: {stats['int']}\n" \
+                f"𝐂𝐡𝐚𝐫𝐠𝐞𝐬: Power: {stats['power_charges']} **|** " \
+                f"Frenzy: {stats['frenzy_charges']} **|** " \
+                f"Endurance: {stats['endurance_charges']}"
 
             if stats['bandit'] != "None":
                 info.description += f"\n𝐁𝐚𝐧𝐝𝐢𝐭: {stats['bandit']}"
 
-            offensive_stats_text =\
-            f"𝐓𝐨𝐭𝐚𝐥 𝐃𝐏𝐒: {float(stats['total_dps']):,.1f}\n"\
-            f"𝐂𝐫𝐢𝐭 𝐂𝐡𝐚𝐧𝐜𝐞: {float(stats['crit_chance']):.1f}%\n"\
-            f"𝐄𝐟𝐟𝐞𝐜𝐭𝐢𝐯𝐞 𝐂𝐫𝐢𝐭 𝐂𝐡𝐚𝐧𝐜𝐞: {float(stats['effective_crit_chance']):.1f}%\n"\
-            f"𝐂𝐡𝐚𝐧𝐜𝐞 𝐭𝐨 𝐇𝐢𝐭: {stats['chance_to_hit']}%"
+            offensive_stats_text = \
+                f"𝐓𝐨𝐭𝐚𝐥 𝐃𝐏𝐒: {float(stats['total_dps']):,.1f}\n" \
+                f"𝐂𝐫𝐢𝐭 𝐂𝐡𝐚𝐧𝐜𝐞: {float(stats['crit_chance']):.1f}%\n" \
+                f"𝐄𝐟𝐟𝐞𝐜𝐭𝐢𝐯𝐞 𝐂𝐫𝐢𝐭 𝐂𝐡𝐚𝐧𝐜𝐞: {float(stats['effective_crit_chance']):.1f}%\n" \
+                f"𝐂𝐡𝐚𝐧𝐜𝐞 𝐭𝐨 𝐇𝐢𝐭: {stats['chance_to_hit']}%"
             info.add_field(name=f"Offense: {stats['main_skill']}", value=offensive_stats_text)
 
-            defensive_stats_text =\
-            f"𝐋𝐢𝐟𝐞: {stats['life']}\n"\
-            f"𝐋𝐢𝐟𝐞 𝐑𝐞𝐠𝐞𝐧: {float(stats['life_regen']):.1f}\n"\
-            f"𝐄𝐧𝐞𝐫𝐠𝐲 𝐒𝐡𝐢𝐞𝐥𝐝: {stats['es']}\n"\
-            f"𝐄𝐒 𝐑𝐞𝐠𝐞𝐧: {float(stats['es_regen']):.1f}\n"\
-            f"𝐃𝐞𝐠𝐞𝐧: {float(stats['degen']):.1f}"
+            defensive_stats_text = \
+                f"𝐋𝐢𝐟𝐞: {stats['life']}\n" \
+                f"𝐋𝐢𝐟𝐞 𝐑𝐞𝐠𝐞𝐧: {float(stats['life_regen']):.1f}\n" \
+                f"𝐄𝐧𝐞𝐫𝐠𝐲 𝐒𝐡𝐢𝐞𝐥𝐝: {stats['es']}\n" \
+                f"𝐄𝐒 𝐑𝐞𝐠𝐞𝐧: {float(stats['es_regen']):.1f}\n" \
+                f"𝐃𝐞𝐠𝐞𝐧: {float(stats['degen']):.1f}"
             info.add_field(name="Defense", value=defensive_stats_text, inline=True)
 
-            mitigation_stats_text=\
-            f"𝐄𝐯𝐚𝐬𝐢𝐨𝐧: {stats['evasion']}\n"\
-            f"𝐁𝐥𝐨𝐜𝐤: {stats['block']}%\n"\
-            f"𝐒𝐩𝐞𝐥𝐥 𝐁𝐥𝐨𝐜𝐤: {stats['spell_block']}%\n"\
-            f"𝐃𝐨𝐝𝐠𝐞: {stats['dodge']}%\n"\
-            f"𝐒𝐩𝐞𝐥𝐥 𝐃𝐨𝐝𝐠𝐞: {stats['spell_dodge']}%"
+            mitigation_stats_text = \
+                f"𝐄𝐯𝐚𝐬𝐢𝐨𝐧: {stats['evasion']}\n" \
+                f"𝐁𝐥𝐨𝐜𝐤: {stats['block']}%\n" \
+                f"𝐒𝐩𝐞𝐥𝐥 𝐁𝐥𝐨𝐜𝐤: {stats['spell_block']}%\n" \
+                f"𝐃𝐨𝐝𝐠𝐞: {stats['dodge']}%\n" \
+                f"𝐒𝐩𝐞𝐥𝐥 𝐃𝐨𝐝𝐠𝐞: {stats['spell_dodge']}%"
             info.add_field(name="Mitigation", value=mitigation_stats_text, inline=True)
 
             resistances_text = \
-            f"𝐅𝐢𝐫𝐞: {stats['fire_res']}%\n"\
-            f"𝐂𝐨𝐥𝐝: {stats['cold_res']}%\n" \
-            f"𝐋𝐢𝐠𝐡𝐭𝐧𝐢𝐧𝐠: {stats['light_res']}%\n" \
-            f"𝐂𝐡𝐚𝐨𝐬: {stats['chaos_res']}%"
+                f"𝐅𝐢𝐫𝐞: {stats['fire_res']}%\n" \
+                f"𝐂𝐨𝐥𝐝: {stats['cold_res']}%\n" \
+                f"𝐋𝐢𝐠𝐡𝐭𝐧𝐢𝐧𝐠: {stats['light_res']}%\n" \
+                f"𝐂𝐡𝐚𝐨𝐬: {stats['chaos_res']}%"
             info.add_field(name="Resistances", value=resistances_text, inline=True)
 
-            # poeurl shortener is QUITE blocking, needs to be done this way or made into async but as long as it works
-            async def tree_text(tree, dict):
-                url = await self.bot.loop.run_in_executor(None, shrink_tree_url, dict[tree])
+            async def tree_text(tree, dictionary):
+                url = await shrink_tree_url(dictionary[tree])
                 return f"[{tree}]({url})"
+
             tasks = []
             for tree in stats['trees']:
                 tasks.append(tree_text(tree, stats['trees']))
@@ -423,21 +415,23 @@ class PathOfExile(Cog):
             info.add_field(name="Other Skill Trees", value=skill_trees, inline=False)
         else:
             info.url = stats['tree_link']
-        asc_list = [f"[{node}](https://pathofexile.gamepedia.com/{node.replace(' ', '_')})" for node in stats['asc_nodes']]
+        asc_list = [f"[{node}](https://pathofexile.gamepedia.com/{node.replace(' ', '_')})" for node in
+                    stats['asc_nodes']]
         asc_text = '\n'.join(asc_list)
 
         info.add_field(name="Ascendancies", value=asc_text, inline=True)
         ks_list = [f"[{node}](https://pathofexile.gamepedia.com/{node.replace(' ', '_')})" for node in
-                    stats['keystones']]
+                   stats['keystones']]
         keystones = '\n'.join(ks_list)
         info.add_field(name="Keystones", value=keystones, inline=True)
         if pob:
-            icon_url = class_icons[stats['ascendancy'].lower()] if stats['ascendancy'] != "None"\
+            icon_url = class_icons[stats['ascendancy'].lower()] if stats['ascendancy'] != "None" \
                 else class_icons[stats['class'].lower()]
         else:
             icon_url = class_icons[stats['class'].lower()]
         info.set_thumbnail(url=icon_url)
-        info.set_footer(text="Don't want your pastebins converted? An admin can disable it using @Zana disable_pastebin")
+        info.set_footer(
+            text="Don't want your pastebins converted? An admin can disable it using @Zana disable_pastebin")
         return info
 
     # The sauce that uploads images to a dump channel in discord to use it as free unlimited image hosting
@@ -457,7 +451,6 @@ class PathOfExile(Cog):
         flasks_dict = self._flasks_pob(stats['equipped'])
         gem_groups_dict = self._gem_groups(stats['equipped'])
         responsive_dict['info'] = await self._info_dict(stats, pob, pob_party=party_url)
-        ##print(responsive_dict['info'].fields)
         if weapons_dict:
             responsive_dict['weapon'] = weapons_dict['embed']
             files.append(weapons_dict['file'])
@@ -500,7 +493,7 @@ class PathOfExile(Cog):
 
     @commands.command()
     async def characters(self, ctx, account=None):
-        """ Get all characters on account """
+        """ Get all characters on account. """
         if not account:
             return await ctx.error("Incorrect number of arguments supplied!\n`@Zana characters <account_name>")
 
@@ -516,7 +509,7 @@ class PathOfExile(Cog):
                 char_dict[char['league']] = list()
             char_dict[char['league']].append(char)
 
-        em = Embed(title=f"{account}'s Characters", color=self.bot.user_color)
+        embed = Embed(title=f"{account}'s Characters", color=self.bot.user_color)
         for league in char_dict:
             league_chars = []
             for char in char_dict[league]:
@@ -524,17 +517,16 @@ class PathOfExile(Cog):
                 league_chars.append(txt)
             fmt_chars = '\n'.join(league_chars)
             if len(fmt_chars) <= 1000:
-                em.add_field(name=league, value = fmt_chars)
+                embed.add_field(name=league, value=fmt_chars)
             else:
-                em.add_field(name=league, value = '\n'.join(league_chars[:(len(league_chars)//2)-1]))
-                em.add_field(name=f"{league} (cont.)", value='\n'.join(league_chars[(len(league_chars)//2) - 1:]))
+                embed.add_field(name=league, value='\n'.join(league_chars[:(len(league_chars) // 2) - 1]))
+                embed.add_field(name=f"{league} (cont.)", value='\n'.join(league_chars[(len(league_chars) // 2) - 1:]))
 
-        #print()
-        await ctx.send(embed=em)
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def charinfo(self, ctx, character=None):
-        """ Fetch character info for provided account and character """
+        """ Fetch character info for provided account and character. """
 
         if not character:
             return await ctx.error("Incorrect number of arguments supplied!\n`@Zana charinfo <charname>")
@@ -565,7 +557,7 @@ class PathOfExile(Cog):
 
     @commands.command()
     async def pob(self, ctx):
-        """ Fetch character info for valid pob pastebin links posted in chat """
+        """ Fetch character info for valid pob pastebin links posted in chat. """
         # Pastebin util is from another discord pob parsing bot, why re-invent the wheel i guess?
         if "pastebin.com/" in ctx.message.content:
             paste_keys = pastebin.fetch_paste_key(ctx.message.content)
@@ -574,15 +566,16 @@ class PathOfExile(Cog):
             paste_key = paste_keys[0]
             try:
                 xml = await self.bot.loop.run_in_executor(None, pastebin.get_as_xml, paste_key)
-            except:
+            except Exception:
                 return
-            if not xml: return
-            raw = await self.bot.loop.run_in_executor(None, pastebin.get_raw_data, f"https://pastebin.com/raw/{paste_key}")
-            ##print(raw)
+            if not xml:
+                return
+            paste_url = f"https://pastebin.com/raw/{paste_key}"
+            raw = await self.bot.loop.run_in_executor(None, pastebin.get_raw_data, paste_url)
             async with self.bot.ses.post("https://pob.party/kv/put?ver=latest", data=raw) as resp:
                 try:
                     party_resp = await resp.json()
-                except:
+                except Exception:
                     party_resp = None
             if party_resp:
                 party_url = f"https://pob.party/share/{party_resp['url']}"
@@ -601,34 +594,26 @@ class PathOfExile(Cog):
             async with self.bot.ses.get(f"https://pob.party/kv/get/{key}") as resp:
                 try:
                     party_resp = await resp.json()
-                except:
+                except Exception:
                     party_resp = None
             if not party_resp:
                 return
             xml = pastebin.decode_to_xml(party_resp['data']).decode('utf-8')
             party_url = None
-        ##print(party_url)
         stats = await self.bot.loop.run_in_executor(None, cache_pob_xml, xml, self.client)
         await self.make_responsive_embed(stats, ctx, party_url=party_url)
 
     @commands.command()
     async def convert(self, ctx):
-        """ Convert an item copied from PoB or PoETradeMacro to the Zana version """
+        """ Convert an item copied from PoB or PoETradeMacro to the Zana version. """
 
         # Put my PoB item parser to good use
         try:
             pob_item = utils.parse_pob_item(ctx.message.content)
-        except:
-            #print(ctx.message.content)
+        except Exception:
             return
         d = {}
-        #print(pob_item)
         await self.bot.loop.run_in_executor(None, utils._get_wiki_base, pob_item, d, self.client, "Chat Item")
-        ##print(d)
-        ##print(d['Chat Item'].energy_shield)
-        #utils.modify_base_stats(d['Chat Item'])
-        ##print(d['Chat Item'].energy_shield)
-        #print("qual, ", d['Chat Item'].quality)
         renderer = utils.ItemRender(d['Chat Item'].rarity)
         img = renderer.render(d['Chat Item'])
         image_fp = BytesIO()
@@ -636,53 +621,56 @@ class PathOfExile(Cog):
         image_fp.seek(0)
         file = File(image_fp, filename=f"converted.png")
         upload = await self.bot.dump_channel.send(file=file)
-        em = Embed(description="*Click the reaction below for raw item text.*")
-        em.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.avatar_url)
-        em.set_image(url=upload.attachments[0].url)
-        em.set_footer(text="Don't want your items converted? An admin can disable it using @Zana disable_conversion.")
+        embed = Embed(description="*Click the reaction below for raw item text.*")
+        embed.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.avatar_url)
+        embed.set_image(url=upload.attachments[0].url)
+        embed.set_footer(text="Don't want your items converted? An admin can disable it using @Zana disable_conversion.")
         try:
-            embed_msg = await ctx.send(embed=em)
+            embed_msg = await ctx.send(embed=embed)
             env_emoji = '📩'
             try:
                 await embed_msg.add_reaction(env_emoji)
-            except:
+            except Exception:
                 return
-            def check(reaction, user):
+
+            def check(_reaction, _user):
                 try:
-                    return reaction.emoji == env_emoji\
-                           and reaction.message.id == embed_msg.id\
-                           and user.id != self.bot.user.id
-                except:
+                    check_one = _reaction.emoji == env_emoji
+                    check_two = _reaction.message.id == embed_msg.id
+                    check_thr = _user.id != self.bot.user.id
+                    return all([check_one, check_two, check_thr])
+                except Exception:
                     return False
+
             while True:
                 reaction, user = await self.bot.wait_for('reaction_add', check=check)
                 try:
                     await embed_msg.remove_reaction(reaction.emoji, user)
-                except:
+                except Exception:
                     pass
 
                 try:
                     await user.send(f"```\n{ctx.message.content}\n```")
-                except:
+                except Exception:
                     pass
-        except:
+        except Exception:
             try:
                 await ctx.send(f"**{ctx.author.name}#{ctx.author.discriminator}**:\n", file=file)
-            except:
+            except Exception:
                 await ctx.error("`Attach Files` permission required", delete_after=2)
 
     @commands.command()
-    async def roll(self, ctx, * ,item: str=None):
+    async def roll(self, ctx, *, item: str = None):
         """ 'Divine' any Unique item and test your luck! """
         if not item:
             return await ctx.error("The correct format to use `roll` is\n`@Zana roll <itemname>`")
-        unique = await self.bot.loop.run_in_executor(None,find_one, item, self.client, self.bot.loop)
+        unique = await self.bot.loop.run_in_executor(None, find_one, item, self.client, self.bot.loop)
         unique = copy.copy(unique)
         if not unique:
             return await ctx.error(f"Couldn't find {item} on the wiki!")
         if unique.rarity.lower() != 'unique':
             return await ctx.error("You can only roll unique items!")
-        base = await self.bot.loop.run_in_executor(None,find_one, unique.base, self.client, self.bot.loop)
+        base = await self.bot.loop.run_in_executor(None, find_one, unique.base, self.client, self.bot.loop)
         base = copy.copy(base)
         implicits = utils.unescape_to_list(unique.implicits)
         explicits = utils.unescape_to_list(unique.explicits)
@@ -690,13 +678,13 @@ class PathOfExile(Cog):
         decided_explicits = []
         for implicit in implicits:
             if '(' in implicit and ')' in implicit and 'hidden' not in implicit.lower():
-                matches = self.rng.findall(implicit)
+                matches = self.pr_re.findall(implicit)
                 match_dict = {}
                 for match in matches:
                     stat = match[1:-1]
                     separator = stat.find('-', 1)
                     range_start = stat[:separator]
-                    range_end = stat[separator+1:]
+                    range_end = stat[separator + 1:]
                     if '.' in range_start or '.' in range_end:
                         randomized_stat = random.uniform(float(range_start), float(range_end))
                     else:
@@ -705,11 +693,13 @@ class PathOfExile(Cog):
                         continue
                     match_dict[match] = randomized_stat
                     new_impl = implicit
+
                 for rep in match_dict:
                     new_impl = new_impl.replace(rep, str(match_dict[rep]))
                     if match_dict[rep] < 0:
                         new_impl = new_impl.replace('+', '')
                         new_impl = new_impl.replace('increased', 'reduced')
+
                 if match_dict:
                     decided_implicits.append(new_impl)
             else:
@@ -717,14 +707,13 @@ class PathOfExile(Cog):
 
         for explicit in explicits:
             if '(' in explicit and ')' in explicit and 'hidden' not in explicit.lower():
-                matches = self.rng.findall(explicit)
+                matches = self.pr_re.findall(explicit)
                 match_dict = {}
-                #print(matches)
                 for match in matches:
                     stat = match[1:-1]
                     separator = stat.find('-', 1)
                     range_start = stat[:separator]
-                    range_end = stat[separator+1:]
+                    range_end = stat[separator + 1:]
                     if '.' in range_start or '.' in range_end:
                         randomized_stat = random.uniform(float(range_start), float(range_end))
                     else:
@@ -748,11 +737,9 @@ class PathOfExile(Cog):
         unique.implicits = escaped_implicits
         base.explicits = escaped_explicits
         unique.explicits = escaped_explicits
-        #print(unique.tags)
         try:
             utils.modify_base_stats(base)
             if 'weapon' in unique.tags:
-                #print("is wep")
                 unique.attack_speed = base.attack_speed
                 unique.critical_chance = base.critical_chance
                 unique.range = base.range
@@ -771,7 +758,7 @@ class PathOfExile(Cog):
                 unique.evasion = base.evasion
                 unique.energy_shield = base.energy_shield
 
-        except:
+        except Exception:
             pass
         renderer = utils.ItemRender('unique')
         img = renderer.render(unique)
@@ -781,10 +768,10 @@ class PathOfExile(Cog):
         try:
             f = File(image_fp, filename=f'image{round(time.time())}.png')
             await ctx.channel.send(file=f)
-        except:
+        except Exception:
             await ctx.error("`Attach Files` permission required")
 
-    async def _search_api(self, ctx, item_plus_league: str=None):
+    async def _search_api(self, ctx, item_plus_league: str = None):
         if not item_plus_league:
             return await ctx.error("I need an item to price.")
 
@@ -806,20 +793,22 @@ class PathOfExile(Cog):
             item = item_plus_league
 
         if not league or not matched:
-            em = Embed(title="No League Specified" if not league else f"No League named {league}",
-                       description="Specify league by using the command as follows:\n"
-                                   "`@Zana price Kaom's Heart, Metamorph`\nPlease choose a league for this query:\n" +
-                       "\n".join(f'\u2022 *{x["id"]}*' for x in leagues))
-            msg = await ctx.channel.send(embed=em)
+            desc = "Specify league by using the command as follows:\n" \
+                   "`@Zana price Kaom's Heart, Metamorph`\nPlease choose a league for this query:\n" \
+                   "\n".join(f'\u2022 *{x["id"]}*' for x in leagues)
+            embed = Embed(title="No League Specified" if not league else f"No League named {league}", description=desc)
+            msg = await ctx.channel.send(embed=embed)
 
             emojis = self.reaction_emojis
             emojis.insert(3, "4\N{COMBINING ENCLOSING KEYCAP}")
-            def check(reaction, user):
+
+            def check(_reaction, _user):
                 try:
-                    return reaction.emoji in emojis \
-                           and reaction.message.id == msg.id \
-                           and user.id != self.bot.user.id
-                except:
+                    check_one = _reaction.emoji in emojis
+                    check_two = _reaction.message.id == msg.id
+                    check_thr = _user.id != self.bot.user.id
+                    return all([check_one, check_two, check_thr])
+                except Exception:
                     return False
 
             for emoji in emojis:
@@ -835,8 +824,9 @@ class PathOfExile(Cog):
 
         results = await self._item_search(ctx, [item])
         return results[0], league
+
     @commands.command()
-    async def price(self, ctx, *, item_plus_league: str=None):
+    async def price(self, ctx, *, item_plus_league: str = None):
         """ Calculate a fair price for an item in the most common listed currency. """
         verified_item, league = await self._search_api(ctx, item_plus_league)
         if isinstance(verified_item, dict):
@@ -846,13 +836,13 @@ class PathOfExile(Cog):
             price = utils.item_price(verified_item.name, league).fair_price()
             iname = verified_item.name
 
-        em = Embed(title=f"💰 Fair price: *{iname}*",
+        embed = Embed(title=f"💰 Fair price: *{iname}*",
                    description=f"{round(price['value'], 1)} {price['currency']}",
                    color=self.bot.user_color)
-        return await ctx.send(embed=em)
+        return await ctx.send(embed=embed)
 
     @commands.command()
-    async def buy(self, ctx, *, item_plus_league: str=None):
+    async def buy(self, ctx, *, item_plus_league: str = None):
         """ List the 3 lowest priced items with whisper and price info. """
         verified_item, league = await self._search_api(ctx, item_plus_league)
         if isinstance(verified_item, dict):
@@ -862,7 +852,6 @@ class PathOfExile(Cog):
             price = utils.item_price(verified_item.name, league)
             iname = verified_item.name
         lowest = price.lowest()
-        #print(lowest)
         tasks = []
         for item in lowest:
             tasks.append(self.bot.loop.run_in_executor(None,
@@ -874,7 +863,6 @@ class PathOfExile(Cog):
         sockets = {'sockets': [],
                    'indexes': []}
         for ind, item in enumerate(results):
-            ##print(item)
             if not item['equipped']['items_objects']:
                 continue
             if 'sockets' in lowest[ind]['item'] and lowest[ind]['item']['sockets']:
@@ -909,7 +897,7 @@ class PathOfExile(Cog):
             image_fp = BytesIO()
             img.save(image_fp, 'png')
             image_fp.seek(0)
-            files['files'].append(File(image_fp, filename=f"{result.name.lower().replace(' ','')}{ind}.png"))
+            files['files'].append(File(image_fp, filename=f"{result.name.lower().replace(' ', '')}{ind}.png"))
             files['indexes'].append(ind)
 
         if files:
@@ -917,32 +905,28 @@ class PathOfExile(Cog):
             upload.attachments.reverse()
         else:
             upload = None
-        ##print(files)
         embed_dict = dict.fromkeys(self.reaction_emojis[:-1])
-        ##print(embed_dict)
         price = ', '.join([f"*{entry['listing']['price']['amount']} "
                            f"{entry['listing']['price']['currency']}*" for entry in lowest])
         sockets['sockets'].reverse()
-        #print(sockets, files)
         for ind, react in enumerate(embed_dict):
-            em = Embed(title=f"Lowest 3 Listings for {iname}",
+            embed = Embed(title=f"Lowest 3 Listings for {iname}",
                        description=f"Prices: {price}", color=self.bot.user_color)
             try:
                 if ind in files['indexes']:
-                    em.set_image(url=upload.attachments.pop().url)
+                    embed.set_image(url=upload.attachments.pop().url)
             except (IndexError, AttributeError):
                 pass
 
-            em.add_field(name="Price", value=f"{lowest[ind]['listing']['price']['amount']} "
+            embed.add_field(name="Price", value=f"{lowest[ind]['listing']['price']['amount']} "
                                              f"{lowest[ind]['listing']['price']['currency']}")
             if ind in sockets['indexes']:
-                em.add_field(name="Sockets", value=sockets['sockets'].pop())
-            em.add_field(name="Whisper", value=f"`{lowest[ind]['listing']['whisper']}`")
-            embed_dict[react] = em
+                embed.add_field(name="Sockets", value=sockets['sockets'].pop())
+            embed.add_field(name="Whisper", value=f"`{lowest[ind]['listing']['whisper']}`")
+            embed_dict[react] = embed
 
-        ##print(embed_dict)
+        await responsive_embed(self.bot, embed_dict, ctx, timeout=60 * 5, use_dict_emojis=True)
 
-        await responsive_embed(self.bot, embed_dict, ctx, timeout=60*5, use_dict_emojis=True)
 
 def setup(bot):
     bot.add_cog(PathOfExile(bot))

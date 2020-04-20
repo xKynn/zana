@@ -1,4 +1,3 @@
-import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
 
@@ -7,13 +6,14 @@ class Config(Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @staticmethod
     def admin_check(ctx):
         return ctx.channel.permissions_for(ctx.author).administrator
 
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def disable_pastebin(self, ctx):
-        """ Disable preview of posted pastebin links, requires Administrator perms"""
+        """ Disable preview of posted pastebin links, requires Administrator perms. """
         conf = self.bot.server_config.conf
         if str(ctx.guild.id) not in conf:
             conf[str(ctx.guild.id)] = {}
@@ -24,7 +24,7 @@ class Config(Cog):
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def enable_pastebin(self, ctx):
-        """ Enable preview of posted pastebin links, requires Administrator perms"""
+        """ Enable preview of posted pastebin links, requires Administrator perms. """
         conf = self.bot.server_config.conf
         if str(ctx.guild.id) not in conf:
             conf[str(ctx.guild.id)] = {}
@@ -35,7 +35,7 @@ class Config(Cog):
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def disable_conversion(self, ctx):
-        """ Disable conversion of trademacro copied items to poe-style items, requires Administrator perms"""
+        """ Disable conversion of trademacro copied items to poe-style items, requires Administrator perms. """
         conf = self.bot.server_config.conf
         if str(ctx.guild.id) not in conf:
             conf[str(ctx.guild.id)] = {}
@@ -46,12 +46,14 @@ class Config(Cog):
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def enable_conversion(self, ctx):
-        """ Enable conversion of trademacro copied items to poe-style items, requires Administrator perms"""
+        """ Enable conversion of trademacro copied items to poe-style items, requires Administrator perms. """
         conf = self.bot.server_config.conf
         if str(ctx.guild.id) not in conf:
             conf[str(ctx.guild.id)] = {}
         conf[str(ctx.guild.id)]['convert'] = False
         self.bot.server_config.update(conf)
         await ctx.send("Conversion Enabled!")
+
+
 def setup(bot):
     bot.add_cog(Config(bot))
