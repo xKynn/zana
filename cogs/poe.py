@@ -88,7 +88,7 @@ class PathOfExile(Cog):
 
         tasks = []
         for new in new_selections:
-            tasks.append(self.bot.loop.run_in_executor(None, find_one, new, self.client, self.bot.loop))
+            tasks.append(self.bot.loop.run_in_executor(None, find_one, new, self.client))
         new_results = await asyncio.gather(*tasks)
         results.extend(new_results)
 
@@ -145,7 +145,7 @@ class PathOfExile(Cog):
                     images.append(r.render_divcard(result))
                     try:
                         reward = await self.bot.loop.run_in_executor(
-                            None, find_one, result.reward, self.client, self.bot.loop
+                            None, find_one, result.reward, self.client
                         )
 
                         if reward.base == "Prophecy":
@@ -664,13 +664,13 @@ class PathOfExile(Cog):
         """ 'Divine' any Unique item and test your luck! """
         if not item:
             return await ctx.error("The correct format to use `roll` is\n`@Zana roll <itemname>`")
-        unique = await self.bot.loop.run_in_executor(None, find_one, item, self.client, self.bot.loop)
+        unique = await self.bot.loop.run_in_executor(None, find_one, item, self.client)
         unique = copy.copy(unique)
         if not unique:
             return await ctx.error(f"Couldn't find {item} on the wiki!")
         if unique.rarity.lower() != 'unique':
             return await ctx.error("You can only roll unique items!")
-        base = await self.bot.loop.run_in_executor(None, find_one, unique.base, self.client, self.bot.loop)
+        base = await self.bot.loop.run_in_executor(None, find_one, unique.base, self.client)
         base = copy.copy(base)
         implicits = utils.unescape_to_list(unique.implicits)
         explicits = utils.unescape_to_list(unique.explicits)
