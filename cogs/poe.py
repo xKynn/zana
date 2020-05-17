@@ -53,7 +53,7 @@ class PathOfExile(Cog):
     async def _item_search(self, ctx, items):
         tasks = []
         for item in items:
-            tasks.append(self.bot.loop.run_in_executor(None, find_one, item.strip('[]'), self.client, self.bot.loop))
+            tasks.append(self.bot.loop.run_in_executor(None, find_one, item.strip('[]'), self.client))
         results = await asyncio.gather(*tasks)
 
         results = [x for x in results if x]
@@ -106,7 +106,7 @@ class PathOfExile(Cog):
         # I just run instances of find_one in executor + gather
 
         for item in item_matches[:5]:
-            tasks.append(self.bot.loop.run_in_executor(None, find_one, item.strip('[]'), self.client, self.bot.loop))
+            tasks.append(self.bot.loop.run_in_executor(None, find_one, item.strip('[]'), self.client))
 
         results = await self._item_search(ctx, item_matches[:5])
 
