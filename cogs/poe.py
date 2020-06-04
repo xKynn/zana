@@ -113,9 +113,11 @@ class PathOfExile(Cog):
         images = []
         meta = []
 
+        print(results)
+
         for result in results:
             if isinstance(result, dict):
-                matches = results.get('matches')
+                matches = result.get('matches')
                 if matches and len(matches) < 2:
                     ctx.message.content = f"[[{matches[0][0]}]]"
                     self.bot.loop.create_task(self.link.invoke(ctx))
