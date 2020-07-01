@@ -91,12 +91,6 @@ class Zana(commands.Bot):
                         self.server_config.conf[str(ctx.guild.id)].get('convert'):
                     return
                 self.loop.create_task(self.convert_command.invoke(ctx))
-                try:
-                    await ctx.message.delete()
-                except Exception:
-                    #Funny thing is, error is an embed, if someone removes that perm,
-                    #the error doesn't go through as well
-                    await ctx.error("`Manage Messages` required to delete", delete_after=2)
             except Exception:
                 await self.report(ctx.message.content)
         else:
