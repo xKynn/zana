@@ -235,7 +235,8 @@ class PathOfExile(Cog):
     # One slot is basic, render and fetch image and gems
     async def _twoslot_pob(self, equip, item_type):
         embed = Embed(color=self.bot.user_color)
-        if f'{item_type} 1' in equip or f'{item_type} 2' in equip:
+
+        try:
             if f'{item_type} 1' in equip and f'{item_type} 2' in equip:
                 rwp1 = utils.ItemRender(equip[f'{item_type} 1']['object'].rarity)
                 wp1 = rwp1.render(equip[f'{item_type} 1']['object'])
@@ -273,13 +274,14 @@ class PathOfExile(Cog):
                 embed.add_field(name=f"{slot} Gems", value='\n'.join(val_list), inline=True)
 
             return {'file': file, 'embed': embed}
-        else:
+        except KeyError:
             return None
 
     async def _oneslot_pob(self, equip, item_type):
         embed = Embed(color=self.bot.user_color)
-        if item_type in equip:
+        try:
             wp_n = item_type
+            print(equip[wp_n], wp_n)
             rwp = utils.ItemRender(equip[wp_n]['object'].rarity)
             img = rwp.render(equip[wp_n]['object'])
             image_fp = BytesIO()
@@ -295,7 +297,7 @@ class PathOfExile(Cog):
                 embed.add_field(name=f"{wp_n} Gems", value=value, inline=True)
 
             return {'file': file, 'embed': embed}
-        else:
+        except KeyError:
             return None
 
     # Jewels embed making, if its unique include the name as well, rare or magic jewel names don't matter really
@@ -612,7 +614,7 @@ class PathOfExile(Cog):
         # Put my PoB item parser to good use
         try:
             pob_item = utils.parse_pob_item(ctx.message.content)
-        except Exception:
+        except:
             return
         d = {}
         await self.bot.loop.run_in_executor(None, utils._get_wiki_base, pob_item, d, self.client, "Chat Item")
