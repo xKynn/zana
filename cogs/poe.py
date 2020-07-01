@@ -631,6 +631,12 @@ class PathOfExile(Cog):
         embed.set_footer(text="Don't want your items converted? An admin can disable it using @Zana disable_conversion.")
         try:
             embed_msg = await ctx.send(embed=embed)
+            try:
+                await ctx.message.delete()
+            except Exception:
+                #Funny thing is, error is an embed, if someone removes that perm,
+                #the error doesn't go through as well
+                await ctx.error("`Manage Messages` required to delete", delete_after=2)
             env_emoji = '📩'
             try:
                 await embed_msg.add_reaction(env_emoji)
@@ -662,6 +668,11 @@ class PathOfExile(Cog):
                 await ctx.send(f"**{ctx.author.name}#{ctx.author.discriminator}**:\n", file=file)
             except Exception:
                 await ctx.error("`Attach Files` permission required", delete_after=2)
+            else:
+                try:
+                    await ctx.message.delete()
+                except Exception:
+                    await ctx.error("`Manage Messages` required to delete", delete_after=2)
 
     @commands.command()
     async def roll(self, ctx, *, item: str = None):
