@@ -1,6 +1,7 @@
 import aiohttp
 import json
 
+from discord import Game
 from discord.ext import commands
 from pathlib import Path
 from utils.custom_context import ZanaContext
@@ -120,3 +121,5 @@ class Zana(commands.Bot):
               f'{self.user.name}\n'
               f'{self.user.id}\n'
               '--------------------------')
+        game = Game(f"Now in {len(self.guilds)} servers. Thanks for your support!")
+        await self.change_presence(activity=game)
