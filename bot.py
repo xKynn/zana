@@ -10,7 +10,7 @@ from poe.exceptions import OutdatedPoBException
 from poe.exceptions import AbsentItemBaseException
 
 
-class Zana(commands.Bot):
+class Zana(commands.AutoShardedBot):
     def __init__(self, *args, **kwargs):
         self.description = 'To be continued'
 
