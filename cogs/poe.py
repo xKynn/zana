@@ -800,7 +800,7 @@ class PathOfExile(Cog):
                 if league == lg['id']:
                     matched = True
                     break
-                elif league == lg['text']:
+                elif 'name' in lg and league == lg['name']:
                     matched = True
                     league = lg['id']
             item = item_plus_league.split(',')[0].strip()

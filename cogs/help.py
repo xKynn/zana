@@ -35,6 +35,7 @@ class Help(Cog):
                " [here](http://github.com/xKynn/PoE.py)\n" \
                "--\nIf you like my work and would like to help me, " \
                "Ko-Fi/Paypal: [Link](https://ko-fi.com/D1D6EXXV)\n" \
+               "Patreon for server costs: [Link](https://www.patreon.com/demo36)\n" \
                "--\nDislike the font for stats in charinfo/PoB info?\n" \
                "I had to use it instead of discord's markdown formatting because of a bug in " \
                "discord/electron regarding text formatting in embedded data."
