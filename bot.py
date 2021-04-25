@@ -57,7 +57,8 @@ class Zana(commands.AutoShardedBot):
             try:
                 async with message.channel.typing():
                     await self.find_command.invoke(ctx)
-            except Exception:
+            except:
+            #except Exception:
                 await ctx.error("There was an error with your request.")
                 await self.report(ctx.message.content)
         elif 'pastebin.com/' in ctx.message.content or "pob.party/share/" in ctx.message.content:
@@ -84,7 +85,7 @@ class Zana(commands.AutoShardedBot):
                     await ctx.error("There was an error with parsing your pastebin.")
                 await self.report(ctx.message.content)
 
-        elif ctx.message.content.startswith("Rarity:"):
+        elif ctx.message.content.startswith("Item Class:"):
             try:
                 if "personal Map Device" in ctx.message.content:
                     return
