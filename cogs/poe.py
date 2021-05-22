@@ -105,15 +105,16 @@ class PathOfExile(Cog):
         # Because my poe lib is actually completely blocking, i wrote a find_once func and
         # I just run instances of find_one in executor + gather
 
+        ##print(item_matches)
         for item in item_matches[:5]:
-            tasks.append(self.bot.loop.run_in_executor(None, find_one, item.strip('[]'), self.client))
+            tasks.append(self.bot.loop.run_in_executor(None, find_one, item.strip('[[]]'), self.client))
 
         results = await self._item_search(ctx, item_matches[:5])
 
         images = []
         meta = []
 
-        print(results)
+        ##print(results)
 
         for result in results:
             if isinstance(result, dict):
@@ -136,7 +137,7 @@ class PathOfExile(Cog):
                         classes = "Available to all classes" if vendor['classes'] == '' else vendor['classes']
                         siosa = True if vendor['act'] == '3' and vendor['classes'] == '' else False
                         ven_info = self.vendor_info[vendor['act']] if not siosa else self.vendor_info['Siosa']
-                        ven_str += f"**Act {vendor['act']}** - {classes} - {ven_info}\n"
+                        ven_str += f"**Act {vendor['act']}** ㆍ {classes} ㆍ {ven_info}\n"
                     dt['value'] = ven_str
                     meta.append(dt)
 
@@ -185,6 +186,8 @@ class PathOfExile(Cog):
                 images.append(r.render(result))
 
         results = [x for x in results if not isinstance(x, dict)]
+        ##print(results[0].implicits)
+        ##print(results[0].explicits)
 
         # Stitch images together, traditionally 5 images tops, but as div cards can feature their reward as an image
         # Possible max images can be 10
@@ -235,7 +238,7 @@ class PathOfExile(Cog):
     # One slot is basic, render and fetch image and gems
     async def _twoslot_pob(self, equip, item_type):
         embed = Embed(color=self.bot.user_color)
-
+        ##print(equip)
         try:
             if f'{item_type} 1' in equip and f'{item_type} 2' in equip:
                 rwp1 = utils.ItemRender(equip[f'{item_type} 1']['object'].rarity)
@@ -270,7 +273,7 @@ class PathOfExile(Cog):
             for slot in slot_list:
                 val_list = []
                 for gem in equip[slot]['gems']:
-                    val_list.append(f" - {gem['level']}/{gem['quality']} {gem['name']}")
+                    val_list.append(f" ㆍ {gem['level']}/{gem['quality']} {gem['name']}")
                 embed.add_field(name=f"{slot} Gems", value='\n'.join(val_list), inline=True)
 
             return {'file': file, 'embed': embed}
@@ -281,7 +284,7 @@ class PathOfExile(Cog):
         embed = Embed(color=self.bot.user_color)
         try:
             wp_n = item_type
-            print(equip[wp_n], wp_n)
+            ##print(equip[wp_n], wp_n)
             rwp = utils.ItemRender(equip[wp_n]['object'].rarity)
             img = rwp.render(equip[wp_n]['object'])
             image_fp = BytesIO()
@@ -292,7 +295,7 @@ class PathOfExile(Cog):
             if 'gems' in equip[wp_n] and equip[wp_n]['gems']:
                 val_list = []
                 for gem in equip[wp_n]['gems']:
-                    val_list.append(f" - {gem['level']}/{gem['quality']} {gem['name']}")
+                    val_list.append(f" ㆍ {gem['level']}/{gem['quality']} {gem['name']}")
                 value = '\n'.join(val_list)
                 embed.add_field(name=f"{wp_n} Gems", value=value, inline=True)
 
@@ -306,7 +309,7 @@ class PathOfExile(Cog):
         if 'jewels' in equip:
             for jewel in equip['jewels']:
                 name = jewel['base'] if jewel['rarity'].lower() != 'unique' else f"{jewel['name']} {jewel['base']}"
-                val_list = [f" - {stat}" for stat in jewel['stats']]
+                val_list = [f"ㆍ {stat}" for stat in jewel['stats']]
                 value = '\n'.join(val_list)
                 embed.add_field(name=name, value=value, inline=True)
             return embed
@@ -342,7 +345,7 @@ class PathOfExile(Cog):
                 name = gem_title
                 val_list = []
                 for gem in equip['gem_groups'][gem_title]:
-                    val_list.append(f" - {gem['level']}/{gem['quality']} {gem['name']}")
+                    val_list.append(f" ㆍ {gem['level']}/{gem['quality']} {gem['name']}")
                 value = '\n'.join(val_list)
                 embed.add_field(name=name, value=value, inline=True)
             return embed
@@ -631,6 +634,7 @@ class PathOfExile(Cog):
         embed.set_footer(text="Don't want your items converted? An admin can disable it using @Zana disable_conversion.")
         try:
             embed_msg = await ctx.send(embed=embed)
+            embed_id = embed_msg.id
             try:
                 await ctx.message.delete()
             except Exception:
@@ -643,19 +647,19 @@ class PathOfExile(Cog):
             except Exception:
                 return
 
-            def check(_reaction, _user):
+            def check(_payload):
                 try:
-                    check_one = _reaction.emoji == env_emoji
-                    check_two = _reaction.message.id == embed_msg.id
-                    check_thr = _user.id != self.bot.user.id
+                    check_one = _payload.emoji == env_emoji
+                    check_two = _payload.message_id == embed_id
+                    check_thr = _payload.user_id != self.bot.user.id
                     return all([check_one, check_two, check_thr])
                 except Exception:
                     return False
 
             while True:
-                reaction, user = await self.bot.wait_for('reaction_add', check=check)
+                payload = await self.bot.wait_for('raw_reaction_add', check=check)
                 try:
-                    await embed_msg.remove_reaction(reaction.emoji, user)
+                    await embed_msg.remove_reaction(payload)
                 except Exception:
                     pass
 
