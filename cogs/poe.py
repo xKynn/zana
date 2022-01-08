@@ -1,6 +1,8 @@
 import asyncio
 import copy
+import json
 import random
+import requests
 import re
 import time
 from io import BytesIO
@@ -504,9 +506,15 @@ class PathOfExile(Cog):
         if not account:
             return await ctx.error("Incorrect number of arguments supplied!\n`@Zana characters <account_name>")
 
-        async with self.bot.ses.get('https://www.pathofexile.com/character-window/'
-                                    f'get-characters?accountName={account}') as resp:
-            chars = await resp.json()
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.76 Safari/537.36',
+            "Upgrade-Insecure-Requests": "1", "DNT": "1",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.5", "Accept-Encoding": "gzip, deflate"}
+
+        r = requests.get('https://www.pathofexile.com/character-window/'
+                                    f'get-characters?accountName={account}', headers=headers)
+        chars = json.loads(r.text)
         if not isinstance(chars, list):
             return await ctx.error("Private account or incorrect account name.")
         char_dict = {}
@@ -539,21 +547,28 @@ class PathOfExile(Cog):
             return await ctx.error("Incorrect number of arguments supplied!\n`@Zana charinfo <charname>")
 
         # A reddit user told me about this, pretty sweet
-        async with self.bot.ses.get('https://www.pathofexile.com/character-window/get-account-name-'
-                                    f'by-character?character={character}') as resp:
-            account_d = await resp.json()
-
+        headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.76 Safari/537.36',
+                "Upgrade-Insecure-Requests": "1", "DNT": "1",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.5", "Accept-Encoding": "gzip, deflate"}
+        r = requests.get('https://www.pathofexile.com/character-window/get-account-name-' 
+                            f'by-character?character={character}', headers=headers)
+        account_d = json.loads(r.text)
+        # async with self.bot.ses.get('https://www.pathofexile.com/character-window/get-account-name-'
+        #                             f'by-character?character={character}&format=json', headers=headers) as resp:
+        #     account_d = await resp.json()
         if not 'accountName' in account_d:
             return await ctx.error("Invalid character name.")
         else:
             account = account_d['accountName']
 
-        async with self.bot.ses.get('https://www.pathofexile.com/character-window'
-                                    f'/get-items?accountName={account}&character={character}') as resp:
-            items_json = await resp.json()
-        async with self.bot.ses.get('https://www.pathofexile.com/character-window'
-                                    f'/get-passive-skills?accountName={account}&character={character}') as resp:
-            tree_json = await resp.json()
+        r = requests.get('https://www.pathofexile.com/character-window'
+                         f'/get-items?accountName={account}&character={character}', headers=headers)
+        items_json = json.loads(r.text)
+        r = requests.get('https://www.pathofexile.com/character-window'
+                         f'/get-passive-skills?accountName={account}&character={character}', headers=headers)
+        tree_json = json.loads(r.text)
         stats = utils.parse_poe_char_api(items_json, self.client)
         tree_link, keystones, asc_nodes = utils.poe_skill_tree(tree_json['hashes'], items_json['character']['class'],
                                                                return_asc=True, return_keystones=True)
