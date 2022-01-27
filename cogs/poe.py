@@ -112,6 +112,7 @@ class PathOfExile(Cog):
             tasks.append(self.bot.loop.run_in_executor(None, find_one, item.strip('[[]]'), self.client))
 
         results = await self._item_search(ctx, item_matches[:5])
+        print(results)
 
         images = []
         meta = []
@@ -175,7 +176,7 @@ class PathOfExile(Cog):
                         else:
                             loc_list = result.drop.areas.split(',')
                             txt = '\n'.join([f'\u2022 {x}' for x in loc_list[:(len(loc_list) // 2) - 1]])
-                            txt += f"\n[...More](http://pathofexile.gamepedia.com/{quote_plus(result.name).replace('+', '%20')})"
+                            txt += f"\n[...More](http://poewiki.net/wiki/{quote_plus(result.name).replace('+', '%20')})"
                             meta.append({'name': f"{result.name} Drop Locations", 'value': txt})
                     continue
                 else:
@@ -221,7 +222,7 @@ class PathOfExile(Cog):
         links = []
         for item in results:
             links.append(
-                f"\u2022 [{item.name}](http://pathofexile.gamepedia.com/{quote_plus(item.name).replace('+', '%20')})")
+                f"\u2022 [{item.name}](http://poewiki.net/wiki/{quote_plus(item.name).replace('+', '%20')})")
         embed.add_field(name="Wiki Links", value='\n'.join(links))
         embed.set_image(url="attachment://image.png")
 
@@ -424,12 +425,12 @@ class PathOfExile(Cog):
             info.add_field(name="Other Skill Trees", value=skill_trees, inline=False)
         else:
             info.url = stats['tree_link']
-        asc_list = [f"[{node}](https://pathofexile.gamepedia.com/{node.replace(' ', '_')})" for node in
+        asc_list = [f"[{node}](https://poewiki.net/wiki/{node.replace(' ', '_')})" for node in
                     stats['asc_nodes']]
         asc_text = '\n'.join(asc_list)
 
         info.add_field(name="Ascendancies", value=asc_text, inline=True)
-        ks_list = [f"[{node}](https://pathofexile.gamepedia.com/{node.replace(' ', '_')})" for node in
+        ks_list = [f"[{node}](https://poewiki.net/wiki/{node.replace(' ', '_')})" for node in
                    stats['keystones']]
         keystones = '\n'.join(ks_list)
         info.add_field(name="Keystones", value=keystones, inline=True)
