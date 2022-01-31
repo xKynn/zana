@@ -1,11 +1,7 @@
 name: Zana Discord Bot
-
 on:
-    push:
-    branches:
-      - master
-    pull_request:
-      - master
+  push:
+  release:
 jobs:
     name: Build and publish Python distribution
     runs-on: ubuntu-18.04
