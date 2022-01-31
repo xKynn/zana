@@ -3,6 +3,7 @@ FROM python:3.9-slim as py
 FROM py as build
 
 RUN apt update && \
+    apt install git -y \
     apt install -y g++
 
 COPY requirements.txt /
