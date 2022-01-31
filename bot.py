@@ -1,5 +1,6 @@
 import aiohttp
 import json
+import os
 
 from discord import Game
 from discord.ext import commands
@@ -128,7 +129,7 @@ class Zana(commands.AutoShardedBot):
         self.owner = c.owner
         print(f'Client logged in.\n'
               f'{self.user.name}\n'
-              f'{self.user.id}\n'7
+              f'{self.user.id}\n'
               '--------------------------')
         game = Game(f"Now in {len(self.guilds)} servers. Thanks for your support!")
         await self.change_presence(activity=game)
