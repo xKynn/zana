@@ -1,6 +1,6 @@
 on: [push]
 jobs:
-  zana_job:
+  build_container:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
