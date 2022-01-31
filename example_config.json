@@ -1,0 +1,2 @@
+rename or copy this file to config.json and delete this line in the config.json or the bot will not load! also insert your discord bot token below within ""
+{"token":"insert discord bot token here"}
