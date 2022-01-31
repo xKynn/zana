@@ -8,10 +8,7 @@ RUN apt update && \
 
 COPY requirements.txt /
 
-RUN pip install --prefix=/inst -U -r /requirements.txt && \
-    git clone https://github.com/xKynn/PoE.py.git && \
-    pip install --prefix=/inst -U -r requirements.txt && \
-    pip install -e .
+RUN pip install --prefix=/inst -U -r /requirements.txt
 
 FROM py
 

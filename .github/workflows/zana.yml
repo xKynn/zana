@@ -7,7 +7,7 @@ jobs:
         uses: actions/checkout@master
 
       - name: Build frontend image
-        run: docker image build -t image .
+        run: docker image build -t zana:latest .
 
       - name: Login to DockerHub
         uses: docker/login-action@v1
@@ -20,8 +20,8 @@ jobs:
         with:
           context: .
           load: true
-          tags: myimage:latest
+          tags: zana:latest
 
       - name: Inspect
         run: |
-          docker image inspect myimage:latest
+          docker image inspect zana:latest
