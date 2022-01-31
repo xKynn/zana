@@ -17,6 +17,6 @@ jobs:
 
       - name: Inspect
         run: |
-          docker image inspect zana
+          docker image inspect konggal/zana
       - name: push
         run: docker push konggal/zana:latest
