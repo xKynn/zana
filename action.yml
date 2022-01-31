@@ -1,0 +1,4 @@
+name: 'Zana Discord Bot'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'

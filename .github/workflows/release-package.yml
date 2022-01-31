@@ -1,9 +1,0 @@
-name: Zana Discord Bot
-on:
-  push:
-  release:
-jobs:
-    steps:
-      runs:
-        using: 'docker'
-        image: 'Dockerfile'
