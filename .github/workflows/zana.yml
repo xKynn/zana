@@ -4,4 +4,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Zana Build Step
-        uses: KongGal/zana@v1
+        uses: KongGal/zana
