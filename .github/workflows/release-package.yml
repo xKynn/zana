@@ -2,9 +2,10 @@ name: Node.js Package
 
 on:
     push:
-    branches: [ master ]
+    branches:
+      - master
     pull_request:
-    branches: [ master ]
+      - master
 jobs:
     build-n-publish:
     name: Build and publish Python distribution
