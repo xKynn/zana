@@ -3,5 +3,7 @@ jobs:
   zana_job:
     runs-on: ubuntu-latest
     steps:
-      - name: Zana Build Step
-        uses: KongGal/zana@v1
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Build frontend image
+        run: docker image build -t image .
