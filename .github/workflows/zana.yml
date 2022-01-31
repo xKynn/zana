@@ -9,7 +9,7 @@ jobs:
           DOCKER_USER: ${{secrets.DOCKERHUB_USERNAME}}
           DOCKER_PASSWORD: ${{secrets.DOCKERHUB_TOKEN}}
         run: |
-          docker login -u $DOCKER_USER -p $DOCKER_TOKEN
+          docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
       - name: Build
         run: docker build . --file Dockerfile -t konggal/zana:$(date +%s)
 
