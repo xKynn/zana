@@ -3,9 +3,7 @@ on:
   push:
   release:
 jobs:
-
     steps:
-    - name: create Docker COntainer
       runs:
         using: 'docker'
         image: 'Dockerfile'
