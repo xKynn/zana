@@ -5,3 +5,4 @@ nltk
 numpy
 Pillow
 PoE.py
+bs4
