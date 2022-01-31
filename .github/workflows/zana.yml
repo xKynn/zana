@@ -14,4 +14,4 @@ jobs:
         run: docker build . --file Dockerfile -t konggal/zana:$(date +%s)
 
       - name: Docker Push
-        run: docker push ${{secrets.DOCKER_USER}}/zana
+        run: docker push ${{secrets.DOCKERHUB_USERNAME}}/zana
