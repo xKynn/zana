@@ -1,0 +1,7 @@
+on: [push]
+jobs:
+  zana_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Zana Build Step
+        uses: KongGal/zana@v1
