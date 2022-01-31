@@ -6,6 +6,10 @@ RUN apt update && apt install -y g++
 COPY requirements.txt /
 RUN pip install --prefix=/inst -U -r /requirements.txt
 
+RUN GIT clone https://github.com/xKynn/PoE.py.git
+RUN pip install --prefix=/inst -U -r requirements.txt
+RUN pip install -e
+
 FROM py
 
 ENV USING_DOCKER yes

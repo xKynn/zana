@@ -1,5 +1,6 @@
 import aiohttp
 import json
+import os
 
 from discord import Game
 from discord.ext import commands
@@ -14,10 +15,13 @@ class Zana(commands.AutoShardedBot):
     def __init__(self, *args, **kwargs):
         self.description = 'To be continued'
 
-        # Configs & token
-        with open('config.json') as file:
-            self.config = json.load(file)
-
+        # Configs & toke
+        # if a bot token is define in docker then use that else fallback to config.json
+        if "BOT_TOKEN" in os.environ:
+            bot_token = os.getenv("BOT_TOKEN")
+        else:
+            with open('config.json') as file:
+                self.config = json.load(file)
 
         # TODO:
         # - Dynamic prefixes (per guild)
@@ -114,6 +118,7 @@ class Zana(commands.AutoShardedBot):
         self.convert_command = self.get_command('convert')
 
         # Dump channel where i can upload 10 images at once, get url and serve in embeds freely as i'd like to
+        dump_chanel = os.getenv('dump_channel', default='475526519255728128')
         self.dump_channel = self.get_channel(475526519255728128)
         self.ses = aiohttp.ClientSession()
         c = await self.application_info()
