@@ -3,7 +3,6 @@ on:
   push:
   release:
 jobs:
-    name: Build and publish Python distribution
     runs-on: ubuntu-18.04
     steps:
     - name: create Docker COntainer
