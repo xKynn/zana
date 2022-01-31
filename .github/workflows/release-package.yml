@@ -1,12 +1,9 @@
-name: Node.js Package
+name: Zana Discord Bot
 
 on:
     push:
     branches: [ master ]
-    pull_request:
-    branches: [ master ]
 jobs:
-    build-n-publish:
     name: Build and publish Python distribution
     runs-on: ubuntu-18.04
     steps:
