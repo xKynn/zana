@@ -1,6 +1,6 @@
-aiohttp
+aiohttp >= 3.8.1
 cachetools
-discord.py
+discord.py >= 1.7.3
 nltk
 numpy
 Pillow
