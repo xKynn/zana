@@ -112,7 +112,7 @@ class PathOfExile(Cog):
             tasks.append(self.bot.loop.run_in_executor(None, find_one, item.strip('[[]]'), self.client))
 
         results = await self._item_search(ctx, item_matches[:5])
-        print(results)
+        #print(results)
 
         images = []
         meta = []
@@ -383,11 +383,36 @@ class PathOfExile(Cog):
             if stats['bandit'] != "None":
                 info.description += f"\n𝐁𝐚𝐧𝐝𝐢𝐭: {stats['bandit']}"
 
-            offensive_stats_text = \
-                f"𝐓𝐨𝐭𝐚𝐥 𝐃𝐏𝐒: {float(stats['total_dps']):,.1f}\n" \
-                f"𝐂𝐫𝐢𝐭 𝐂𝐡𝐚𝐧𝐜𝐞: {float(stats['crit_chance']):.1f}%\n" \
-                f"𝐄𝐟𝐟𝐞𝐜𝐭𝐢𝐯𝐞 𝐂𝐫𝐢𝐭 𝐂𝐡𝐚𝐧𝐜𝐞: {float(stats['effective_crit_chance']):.1f}%\n" \
-                f"𝐂𝐡𝐚𝐧𝐜𝐞 𝐭𝐨 𝐇𝐢𝐭: {stats['chance_to_hit']}%"
+
+            offensive_stats_text = f"𝐓𝐨𝐭𝐚𝐥 𝐃𝐏𝐒: {float(stats['total_dps']):,.1f}"
+
+            if 'average_hit' in stats:
+                offensive_stats_text += f"\n𝐀𝐯𝐞𝐫𝐚𝐠𝐞 𝐇𝐢𝐭: {float(stats['average_hit']):,.1f}"
+
+            if 'total_dot' in stats:
+                offensive_stats_text += f"\n𝐓𝐨𝐭𝐚𝐥 𝐃𝐨𝐓: {float(stats['total_dot']):,.1f}"
+
+            if 'total_dot_dps' in stats:
+                offensive_stats_text += f"\n𝐃𝐨𝐓 𝐃𝐏𝐒: {float(stats['total_dot_dps']):,.1f}"
+
+            if 'full_dps' in stats:
+                offensive_stats_text += f"\n𝐅𝐮𝐥𝐥 𝐃𝐏𝐒: {float(stats['full_dps']):,.1f}"
+
+            if 'AOE' in stats:
+                offensive_stats_text += f"\n𝐀𝐎𝐄 𝐑𝐚𝐝𝐢𝐮𝐬: {stats['AOE']}"
+
+            if 'mana_cost' in stats:
+                offensive_stats_text += f"\n𝐌𝐚𝐧𝐚 𝐂𝐨𝐬𝐭: {stats['mana_cost']}"
+
+            if 'life_cost' in stats:
+                offensive_stats_text += f"\n𝐋𝐢𝐟𝐞 𝐂𝐨𝐬𝐭: {stats['life_cost']}"
+
+            offensive_stats_text += f"\n𝐂𝐫𝐢𝐭 𝐂𝐡𝐚𝐧𝐜𝐞: {float(stats['crit_chance']):.1f}%"
+            offensive_stats_text += f"\n𝐄𝐟𝐟𝐞𝐜𝐭𝐢𝐯𝐞 𝐂𝐫𝐢𝐭 𝐂𝐡𝐚𝐧𝐜𝐞: {float(stats['effective_crit_chance']):.1f}%"
+
+
+            if stats['chance_to_hit']:
+                offensive_stats_text += f"\n𝐂𝐡𝐚𝐧𝐜𝐞 𝐭𝐨 𝐇𝐢𝐭: {stats['chance_to_hit']}%"
             info.add_field(name=f"Offense: {stats['main_skill']}", value=offensive_stats_text)
 
             defensive_stats_text = \
@@ -399,11 +424,22 @@ class PathOfExile(Cog):
             info.add_field(name="Defense", value=defensive_stats_text, inline=True)
 
             mitigation_stats_text = \
-                f"𝐄𝐯𝐚𝐬𝐢𝐨𝐧: {stats['evasion']}\n" \
-                f"𝐁𝐥𝐨𝐜𝐤: {stats['block']}%\n" \
-                f"𝐒𝐩𝐞𝐥𝐥 𝐁𝐥𝐨𝐜𝐤: {stats['spell_block']}%\n" \
-                f"𝐃𝐨𝐝𝐠𝐞: {stats['dodge']}%\n" \
-                f"𝐒𝐩𝐞𝐥𝐥 𝐃𝐨𝐝𝐠𝐞: {stats['spell_dodge']}%"
+                f"𝐄𝐯𝐚𝐬𝐢𝐨𝐧: {stats['evasion']}"
+            mitigation_stats_text += f"\n𝐀𝐫𝐦𝐨𝐫: {stats['armour']}"
+            mitigation_stats_text += f"\n𝐓𝐨𝐭𝐚𝐥 𝐞𝐇𝐏: {int(stats['total_ehp']):,}"
+            mitigation_stats_text += f"\n𝐄𝐟𝐟 𝐌𝐚𝐱 𝐇𝐢𝐭 𝐓𝐚𝐤𝐞𝐧: {float(stats['max_hit']):,.1f}"
+            if int(stats['phys_reduc']):
+                mitigation_stats_text += f"\n𝐏𝐡𝐲𝐬. 𝐑𝐞𝐝𝐮𝐜𝐭𝐢𝐨𝐧: {stats['phys_reduc']}%"
+            if int(stats['block']):
+                mitigation_stats_text += f"\n𝐁𝐥𝐨𝐜𝐤: {stats['block']}%"
+            if int(stats['spell_block']):
+                mitigation_stats_text += f"\n𝐒𝐩𝐞𝐥𝐥 𝐁𝐥𝐨𝐜𝐤: {stats['spell_block']}%"
+            if int(stats['dodge']):
+                mitigation_stats_text += f"\n𝐃𝐨𝐝𝐠𝐞: {stats['dodge']}%"
+            if int(stats['spell_dodge']):
+                mitigation_stats_text += f"\n𝐒𝐩𝐞𝐥𝐥 𝐃𝐨𝐝𝐠𝐞: {stats['spell_dodge']}%"
+            if int(stats['spell_suppression']):
+                mitigation_stats_text += f"\n𝐒𝐩𝐞𝐥𝐥 𝐒𝐮𝐩𝐩𝐫𝐞𝐬𝐬𝐢𝐨𝐧: {stats['spell_suppression']}%"
             info.add_field(name="Mitigation", value=mitigation_stats_text, inline=True)
 
             resistances_text = \
@@ -458,6 +494,7 @@ class PathOfExile(Cog):
         boots_dict = await self._oneslot_pob(stats['equipped'], 'Boots')
         belt_dict = await self._oneslot_pob(stats['equipped'], 'Belt')
         jewels_dict = self._jewels_pob(stats)
+        #print(jewels_dict)
         flasks_dict = self._flasks_pob(stats['equipped'])
         gem_groups_dict = self._gem_groups(stats['equipped'])
         responsive_dict['info'] = await self._info_dict(stats, pob, pob_party=party_url)
@@ -486,10 +523,13 @@ class PathOfExile(Cog):
             responsive_dict['belt'] = belt_dict['embed']
             files.append(belt_dict['file'])
         if jewels_dict:
+            pass
             responsive_dict['jewels'] = jewels_dict
         if flasks_dict:
+            pass
             responsive_dict['flask'] = flasks_dict
         if gem_groups_dict:
+            pass
             responsive_dict['gems'] = gem_groups_dict
         for key in responsive_dict:
             for index, field in enumerate(responsive_dict[key].fields):
