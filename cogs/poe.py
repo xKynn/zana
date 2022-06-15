@@ -426,7 +426,7 @@ class PathOfExile(Cog):
             mitigation_stats_text = \
                 f"𝐄𝐯𝐚𝐬𝐢𝐨𝐧: {stats['evasion']}"
             mitigation_stats_text += f"\n𝐀𝐫𝐦𝐨𝐫: {stats['armour']}"
-            mitigation_stats_text += f"\n𝐓𝐨𝐭𝐚𝐥 𝐞𝐇𝐏: {float(stats['total_ehp']):,}"
+            mitigation_stats_text += f"\n𝐓𝐨𝐭𝐚𝐥 𝐞𝐇𝐏: {float(stats['total_ehp']):,.1f}"
             mitigation_stats_text += f"\n𝐄𝐟𝐟 𝐌𝐚𝐱 𝐇𝐢𝐭 𝐓𝐚𝐤𝐞𝐧: {float(stats['max_hit']):,.1f}"
             if int(stats['phys_reduc']):
                 mitigation_stats_text += f"\n𝐏𝐡𝐲𝐬. 𝐑𝐞𝐝𝐮𝐜𝐭𝐢𝐨𝐧: {stats['phys_reduc']}%"

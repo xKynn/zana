@@ -55,21 +55,19 @@ class Zana(commands.AutoShardedBot):
         ctx = await self.get_context(message, cls=ZanaContext)
         if '[[' in ctx.message.content and ']]' in ctx.message.content:
             try:
-                async with message.channel.typing():
-                    await self.find_command.invoke(ctx)
-            except:
-            #except Exception:
+                await self.find_command.invoke(ctx)
+            except Exception:
                 await ctx.error("There was an error with your request.")
                 await self.report(ctx.message.content)
         elif 'pastebin.com/' in ctx.message.content or "pob.party/share/" in ctx.message.content:
             if str(ctx.guild.id) in self.server_config.conf and \
                     self.server_config.conf[str(ctx.guild.id)].get('disable_pastebin'):
                 return
-            try:
+            if 1:
                 await message.channel.trigger_typing()
                 await self.pob_command.invoke(ctx)
 
-            except Exception as e:
+            else:
                 if "OutdatedPoBException" in str(e):
                     await ctx.error(
                         "There was an error with parsing your pastebin. It was missing key build information. "
