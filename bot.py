@@ -64,7 +64,6 @@ class Zana(commands.AutoShardedBot):
                     self.server_config.conf[str(ctx.guild.id)].get('disable_pastebin'):
                 return
             if 1:
-                await message.channel.trigger_typing()
                 await self.pob_command.invoke(ctx)
 
             else:
