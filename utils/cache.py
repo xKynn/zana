@@ -1,3 +1,3 @@
-from cachetools import TTLCache
+from cachetools import Cache
 
-cache = TTLCache(maxsize=30000, ttl=86000)
+cache = Cache(maxsize=30000, ttl=86000)
