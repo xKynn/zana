@@ -718,7 +718,7 @@ class PathOfExile(Cog):
             while True:
                 payload = await self.bot.wait_for('raw_reaction_add', check=check)
                 try:
-                    await embed_msg.remove_reaction(payload)
+                    await embed_msg.remove_reaction(payload.emoji, payload.member)
                 except:
                     pass
 
@@ -726,7 +726,7 @@ class PathOfExile(Cog):
                     await ctx.author.send(f"```\n{ctx.message.content}\n```")
                 except Exception:
                     pass
-        except Exception:   
+        except Exception:
             try:
                 await ctx.send(f"**{ctx.author.name}#{ctx.author.discriminator}**:\n", file=file)
             except Exception:

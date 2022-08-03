@@ -2,6 +2,7 @@ import aiohttp
 import json
 
 from discord import Game
+from discord import Embed
 from discord.ext import commands
 from pathlib import Path
 from utils.custom_context import ZanaContext
@@ -43,8 +44,51 @@ class Zana(commands.AutoShardedBot):
     def run(self):
         super().run(self.config['token'])
 
-    async def report(self, msg):
-        await self.owner.send(f"Error, context: `{msg}`")
+    async def report(self, ctx):
+        embed = Embed(description="⚠ Zana encountered an error while processing your request. If you would like to send"
+                                  " an error report, please react below.")
+        try:
+            embed_msg = await ctx.send(embed=embed, delete_after=30)
+            embed_id = embed_msg.id
+            try:
+                await ctx.message.delete()
+            except Exception:
+                #Funny thing is, error is an embed, if someone removes that perm,
+                #the error doesn't go through as well
+                await ctx.error("`Manage Messages` required to delete", delete_after=2)
+            env_emoji = '📩'
+            try:
+                await embed_msg.add_reaction(env_emoji)
+            except Exception:
+                return
+
+            def check(_payload):
+                try:
+                    check_one = str(_payload.emoji) == str(env_emoji)
+                    check_two = _payload.message_id == embed_id
+                    check_thr = _payload.user_id != self.user.id
+                    check_fr = _payload.user_id == ctx.author.id
+                    return all([check_one, check_two, check_thr, check_fr])
+                except Exception:
+                    return False
+
+            payload = await self.wait_for('raw_reaction_add', check=check)
+            try:
+                await embed_msg.remove_reaction(payload.emoji, payload.member)
+            except Exception:
+                pass
+
+            try:
+                await self.owner.send(f"Error, context: `{ctx.message.content}`")
+            except Exception:
+                pass
+
+            try:
+                await embed_msg.add_reaction('✅')
+            except Exception:
+                return
+        except Exception:
+            pass
 
     # 'on_message' bot what a n00b omg
     # Only way to link items or provide pob without people requesting it as i wanted this to be a conversation based bot
@@ -58,15 +102,15 @@ class Zana(commands.AutoShardedBot):
                 await self.find_command.invoke(ctx)
             except Exception:
                 await ctx.error("There was an error with your request.")
-                await self.report(ctx.message.content)
+                await self.report(ctx)
         elif 'pastebin.com/' in ctx.message.content or "pob.party/share/" in ctx.message.content:
             if str(ctx.guild.id) in self.server_config.conf and \
                     self.server_config.conf[str(ctx.guild.id)].get('disable_pastebin'):
                 return
-            if 1:
+            try:
                 await self.pob_command.invoke(ctx)
 
-            else:
+            except:
                 if "OutdatedPoBException" in str(e):
                     await ctx.error(
                         "There was an error with parsing your pastebin. It was missing key build information. "
@@ -80,7 +124,7 @@ class Zana(commands.AutoShardedBot):
                         " Rare item names are changeable.")
                 else:
                     await ctx.error("There was an error with parsing your pastebin.")
-                await self.report(ctx.message.content)
+                await self.report(ctx)
 
         elif ctx.message.content.startswith("Item Class:"):
             try:
@@ -91,7 +135,7 @@ class Zana(commands.AutoShardedBot):
                     return
                 self.loop.create_task(self.convert_command.invoke(ctx))
             except Exception:
-                await self.report(ctx.message.content)
+                await self.report(ctx)
         else:
             await self.invoke(ctx)
 
