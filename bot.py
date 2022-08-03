@@ -47,6 +47,8 @@ class Zana(commands.AutoShardedBot):
     async def report(self, ctx):
         embed = Embed(description="⚠ Zana encountered an error while processing your request. If you would like to send"
                                   " an error report, please react below.")
+        embed.set_footer(
+            text="This message auto-deletes in 30 seconds.")
         try:
             embed_msg = await ctx.send(embed=embed, delete_after=30)
             embed_id = embed_msg.id
