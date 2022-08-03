@@ -708,7 +708,7 @@ class PathOfExile(Cog):
 
             def check(_payload):
                 try:
-                    check_one = _payload.emoji == env_emoji
+                    check_one = str(_payload.emoji) == str(env_emoji)
                     check_two = _payload.message_id == embed_id
                     check_thr = _payload.user_id != self.bot.user.id
                     return all([check_one, check_two, check_thr])
@@ -719,14 +719,14 @@ class PathOfExile(Cog):
                 payload = await self.bot.wait_for('raw_reaction_add', check=check)
                 try:
                     await embed_msg.remove_reaction(payload)
-                except Exception:
+                except:
                     pass
 
                 try:
-                    await user.send(f"```\n{ctx.message.content}\n```")
+                    await ctx.author.send(f"```\n{ctx.message.content}\n```")
                 except Exception:
                     pass
-        except Exception:
+        except Exception:   
             try:
                 await ctx.send(f"**{ctx.author.name}#{ctx.author.discriminator}**:\n", file=file)
             except Exception:
@@ -918,6 +918,16 @@ class PathOfExile(Cog):
                    description=f"{round(price['value'], 1)} {price['currency']}",
                    color=self.bot.user_color)
         return await ctx.send(embed=embed)
+
+    @commands.command()
+    async def notice(self, ctx):
+        return await ctx.send("Discord's recent privacy changes regarding bots make it so bots cannot read"
+                              " user messages unless explicitly mentioned. It is one of the possible reasons in case"
+                              " the bot isn't responding. I'll be working on either getting approval from Discord or"
+                              " trying to utilize new options from Discord to make using the bot easier."
+                              " \n\n**Solution**\nMeanwhile, to remedy this all you need to do is mention / tag the bot"
+                              " whenever you need to use it to link items, POBs and so on. It might also be easier to"
+                              " nickname the bot something simple like Z so you can just `@Z` if you wish.")
 
     @commands.command()
     async def buy(self, ctx, *, item_plus_league: str = None):
