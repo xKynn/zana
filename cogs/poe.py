@@ -431,17 +431,17 @@ class PathOfExile(Cog):
             mitigation_stats_text += f"\n𝐂𝐨𝐥𝐝 𝐌𝐚𝐱 𝐇𝐢𝐭 𝐓𝐚𝐤𝐞𝐧: {float(stats['cold_max_hit']):,.1f}"
             mitigation_stats_text += f"\n𝐋𝐢𝐠𝐡𝐭 𝐌𝐚𝐱 𝐇𝐢𝐭 𝐓𝐚𝐤𝐞𝐧: {float(stats['light_max_hit']):,.1f}"
             mitigation_stats_text += f"\n𝐂𝐡𝐚𝐨𝐬 𝐌𝐚𝐱 𝐇𝐢𝐭 𝐓𝐚𝐤𝐞𝐧: {float(stats['chaos_max_hit']):,.1f}"
-            if int(stats['phys_reduc']):
+            if float(stats['phys_reduc']):
                 mitigation_stats_text += f"\n𝐏𝐡𝐲𝐬. 𝐑𝐞𝐝𝐮𝐜𝐭𝐢𝐨𝐧: {stats['phys_reduc']}%"
-            if int(stats['block']):
+            if float(stats['block']):
                 mitigation_stats_text += f"\n𝐁𝐥𝐨𝐜𝐤: {stats['block']}%"
-            if int(stats['spell_block']):
+            if float(stats['spell_block']):
                 mitigation_stats_text += f"\n𝐒𝐩𝐞𝐥𝐥 𝐁𝐥𝐨𝐜𝐤: {stats['spell_block']}%"
-            if int(stats['dodge']):
+            if float(stats['dodge']):
                 mitigation_stats_text += f"\n𝐃𝐨𝐝𝐠𝐞: {stats['dodge']}%"
-            if int(stats['spell_dodge']):
+            if float(stats['spell_dodge']):
                 mitigation_stats_text += f"\n𝐒𝐩𝐞𝐥𝐥 𝐃𝐨𝐝𝐠𝐞: {stats['spell_dodge']}%"
-            if int(stats['spell_suppression']):
+            if float(stats['spell_suppression']):
                 mitigation_stats_text += f"\n𝐒𝐩𝐞𝐥𝐥 𝐒𝐮𝐩𝐩𝐫𝐞𝐬𝐬𝐢𝐨𝐧: {stats['spell_suppression']}%"
             info.add_field(name="Mitigation", value=mitigation_stats_text, inline=True)
 
