@@ -118,6 +118,9 @@ class PathOfExile(Cog):
         meta = []
 
         ##print(results)
+        
+        if not results:
+            return
 
         for result in results:
             if isinstance(result, dict):
