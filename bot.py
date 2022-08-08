@@ -100,10 +100,9 @@ class Zana(commands.AutoShardedBot):
         await self.wait_until_ready()
         ctx = await self.get_context(message, cls=ZanaContext)
         if '[[' in ctx.message.content and ']]' in ctx.message.content:
-            if 1:
+            try:
                 await self.find_command.invoke(ctx)
-            else:
-                await ctx.error("There was an error with your request.")
+            except:
                 await self.report(ctx)
         elif 'pastebin.com/' in ctx.message.content or "pob.party/share/" in ctx.message.content:
             if str(ctx.guild.id) in self.server_config.conf and \
@@ -113,19 +112,19 @@ class Zana(commands.AutoShardedBot):
                 await self.pob_command.invoke(ctx)
 
             except:
-                if "OutdatedPoBException" in str(e):
-                    await ctx.error(
-                        "There was an error with parsing your pastebin. It was missing key build information. "
-                        "It is very likely it was exported from an outdated path of building version, please try "
-                        "exporting it from a newer version.")
-                elif "AbsentItemBaseException" in str(e):
-                    await ctx.error(
-                        "There was an error with parsing your pastebin. One or more corresponding item bases could not be"
-                        " found on the wiki. Zana can not correctly render items if the base types"
-                        " are not consistent with in-game names, same goes for item names for uniques."
-                        " Rare item names are changeable.")
-                else:
-                    await ctx.error("There was an error with parsing your pastebin.")
+                # if "OutdatedPoBException" in str(e):
+                #     await ctx.error(
+                #         "There was an error with parsing your pastebin. It was missing key build information. "
+                #         "It is very likely it was exported from an outdated path of building version, please try "
+                #         "exporting it from a newer version.")
+                # elif "AbsentItemBaseException" in str(e):
+                #     await ctx.error(
+                #         "There was an error with parsing your pastebin. One or more corresponding item bases could not be"
+                #         " found on the wiki. Zana can not correctly render items if the base types"
+                #         " are not consistent with in-game names, same goes for item names for uniques."
+                #         " Rare item names are changeable.")
+                # else:
+                await ctx.error("There was an error with parsing your pastebin.")
                 await self.report(ctx)
 
         elif ctx.message.content.startswith("Item Class:"):
