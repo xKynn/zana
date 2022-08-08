@@ -100,9 +100,9 @@ class Zana(commands.AutoShardedBot):
         await self.wait_until_ready()
         ctx = await self.get_context(message, cls=ZanaContext)
         if '[[' in ctx.message.content and ']]' in ctx.message.content:
-            try:
+            if 1:
                 await self.find_command.invoke(ctx)
-            except Exception:
+            else:
                 await ctx.error("There was an error with your request.")
                 await self.report(ctx)
         elif 'pastebin.com/' in ctx.message.content or "pob.party/share/" in ctx.message.content:
