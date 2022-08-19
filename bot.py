@@ -164,5 +164,6 @@ class Zana(commands.AutoShardedBot):
               f'{self.user.name}\n'
               f'{self.user.id}\n'
               '--------------------------')
-        game = Game(f"Now in {len(self.guilds)} servers. Thanks for your support!")
+        #game = Game(f"Now in {len(self.guilds)} servers. Thanks for your support!")
+        game = Game(f"'@Zana notice' for important bot notice. Now in {len(self.guilds)} servers. Thanks for your support!")
         await self.change_presence(activity=game)

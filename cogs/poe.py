@@ -924,13 +924,17 @@ class PathOfExile(Cog):
 
     @commands.command()
     async def notice(self, ctx):
-        return await ctx.send("Discord's recent privacy changes regarding bots make it so bots cannot read"
+        return await ctx.send("Starting August 30th 2022 Discord's recent privacy changes regarding bots would make "
+                              "it so bots cannot read"
                               " user messages unless explicitly mentioned. It is one of the possible reasons in case"
                               " the bot isn't responding. I'll be working on either getting approval from Discord or"
                               " trying to utilize new options from Discord to make using the bot easier."
                               " \n\n**Solution**\nMeanwhile, to remedy this all you need to do is mention / tag the bot"
                               " whenever you need to use it to link items, POBs and so on. It might also be easier to"
-                              " nickname the bot something simple like Z so you can just `@Z` if you wish.")
+                              " nickname the bot something simple like Z so you can just `@Z` if you wish.\n"
+                              "So for example now when you want to link an item you can just start or end the message "
+                              "tagging Zana. Like: `@Zana [[Arc]]` or `@Zana pastebin.com/1a2b3c4d`, nicknaming the bot "
+                              "on your server also works, it would look like `@Z [[Arc]]`")
 
     @commands.command()
     async def buy(self, ctx, *, item_plus_league: str = None):
