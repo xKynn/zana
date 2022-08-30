@@ -924,6 +924,7 @@ class PathOfExile(Cog):
 
     @commands.command()
     async def notice(self, ctx):
+        """ Important Notice """
         return await ctx.send("Starting August 30th 2022 Discord's recent privacy changes regarding bots would make "
                               "it so bots cannot read"
                               " user messages unless explicitly mentioned. It is one of the possible reasons in case"

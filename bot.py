@@ -52,12 +52,6 @@ class Zana(commands.AutoShardedBot):
         try:
             embed_msg = await ctx.send(embed=embed, delete_after=30)
             embed_id = embed_msg.id
-            try:
-                await ctx.message.delete()
-            except Exception:
-                #Funny thing is, error is an embed, if someone removes that perm,
-                #the error doesn't go through as well
-                await ctx.error("`Manage Messages` required to delete", delete_after=2)
             env_emoji = '📩'
             try:
                 await embed_msg.add_reaction(env_emoji)
@@ -124,7 +118,6 @@ class Zana(commands.AutoShardedBot):
                 #         " are not consistent with in-game names, same goes for item names for uniques."
                 #         " Rare item names are changeable.")
                 # else:
-                await ctx.error("There was an error with parsing your pastebin.")
                 await self.report(ctx)
 
         elif ctx.message.content.startswith("Item Class:"):
