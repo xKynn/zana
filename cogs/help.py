@@ -18,7 +18,8 @@ class Help(Cog):
         if command_name is not None:
             return await ctx.invoke(self.cmd('help command'), cmd_name=command_name)
 
-        desc = "**Linking items:** The bot links items for you in chat if you decorate item names with " \
+        desc = "**Bot not respoding to your messages or commands?**: Please read `@Zana notice`, thanks!\n\n" \
+               "**Linking items:** The bot links items for you in chat if you decorate item names with " \
                "[[]] for example [[Xoph\'s Blood]]\n\n" \
                "**Path of Building preview:** If a pastebin link is posted in a chat the bot can see " \
                "and is a valid pob pastebin, the bot will reply with a detailed preview.\n\n" \
