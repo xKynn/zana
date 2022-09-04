@@ -19,12 +19,12 @@ class Help(Cog):
             return await ctx.invoke(self.cmd('help command'), cmd_name=command_name)
 
         desc = "**Bot not respoding to your messages or commands?**: Please read `@Zana notice`, thanks!\n\n" \
-               "**Linking items:** The bot links items for you in chat if you decorate item names with " \
-               "[[]] for example [[Xoph\'s Blood]]\n\n" \
-               "**Path of Building preview:** If a pastebin link is posted in a chat the bot can see " \
+               "**Linking items:** The bot links items for you in chat if you mention Zana and decorate item names with " \
+               "[[]] for example `@Zana [[Xoph\'s Blood]]`\n\n" \
+               "**Path of Building preview:** If a pastebin link is posted and the bot is mentioned in a chat the bot can see " \
                "and is a valid pob pastebin, the bot will reply with a detailed preview.\n\n" \
                "**Item Paste Conversion:** If you copy an item from PoB or PoETradeMacro, and" \
-               " if you paste it in chat, the bot will convert it into the bot's image form. Nee" \
+               " if you paste it in chat and mention Zana, the bot will convert it into the bot's image form. Nee" \
                "ds `Manage Messages` to delete user's post\n\n" \
                "**Permissions:** The permissions required to function :-\n" \
                "`Send Messages`, `Manage Messages`, `Embed Links`, `Read Message History`," \
