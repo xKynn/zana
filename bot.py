@@ -93,6 +93,8 @@ class Zana(commands.AutoShardedBot):
             return
         await self.wait_until_ready()
         ctx = await self.get_context(message, cls=ZanaContext)
+        ctx.message.content = ctx.message.content.replace(self.user.mention+' ', '')
+        ctx.message.content = ctx.message.content.replace(self.user.mention, '')
         if '[[' in ctx.message.content and ']]' in ctx.message.content:
             try:
                 await self.find_command.invoke(ctx)
