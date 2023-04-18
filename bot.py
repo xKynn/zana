@@ -1,5 +1,6 @@
 import aiohttp
 import json
+import os
 
 from discord import Game
 from discord import Embed
@@ -10,21 +11,28 @@ from utils.server_config import ServerConfig
 from poe.exceptions import OutdatedPoBException
 from poe.exceptions import AbsentItemBaseException
 
-
 class Zana(commands.AutoShardedBot):
     def __init__(self, *args, **kwargs):
         self.description = 'To be continued'
 
-        # Configs & token
-        with open('config.json') as file:
-            self.config = json.load(file)
+        # Load config.json if it exists
+        configData = {}
+        if Path("config.json").is_file():
+            configFile = open('config.json')
+            configData = json.load(configFile)
 
+        self.config = {
+            'token': os.getenv('TOKEN') or configData['token']
+        }
+
+        # If token isn't set, throw an exception and halt
+        if not self.config['token']:
+            raise Exception('Token not set, please set TOKEN environment variable or config.json')
 
         # TODO:
         # - Dynamic prefixes (per guild)
         # - Migrate help command from Watashi
-        super().__init__(command_prefix=commands.when_mentioned, description=self.description,
-                         pm_help=None, *args, **kwargs)
+        super().__init__(command_prefix=commands.when_mentioned, description=self.description, pm_help=None, *args, **kwargs)
 
         # Startup extensions (none yet)
         self.startup_ext = [x.stem for x in Path('cogs').glob('*.py')]
@@ -151,7 +159,8 @@ class Zana(commands.AutoShardedBot):
         self.convert_command = self.get_command('convert')
 
         # Dump channel where i can upload 10 images at once, get url and serve in embeds freely as i'd like to
-        self.dump_channel = self.get_channel(475526519255728128)
+        dump_channel_id = os.getenv('DUMP_CHANNEL', default="475526519255728128")
+        self.dump_channel = self.get_channel(int(dump_channel_id))
         self.ses = aiohttp.ClientSession()
         c = await self.application_info()
         self.owner = c.owner
