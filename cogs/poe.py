@@ -456,8 +456,7 @@ class PathOfExile(Cog):
             info.add_field(name="Resistances", value=resistances_text, inline=True)
 
             async def tree_text(tree, dictionary):
-                url = await shrink_tree_url(dictionary[tree])
-                return f"[{tree}]({url})"
+                return f"[{tree}]({dictionary[tree]})"
 
             tasks = []
             for tree in stats['trees']:
@@ -626,24 +625,36 @@ class PathOfExile(Cog):
 
     @commands.command()
     async def pob(self, ctx):
-        """ Fetch character info for valid pob pastebin links posted in chat. """
+        """ Fetch character info for valid pob pastebin/pobb.in links posted in chat. """
         # Pastebin util is from another discord pob parsing bot, why re-invent the wheel i guess?
+        if 'pastebin.com' in ctx.message.content:
+            paste_keys = pastebin.fetch_paste_key(ctx.message.content)
+            if not paste_keys:
+                return
+            xml = None
+            paste_key = paste_keys[0]
+            try:
+                xml = await self.bot.loop.run_in_executor(None, pastebin.get_as_xml, paste_key)
+            except Exception:
+                return
 
-        paste_keys = pastebin.fetch_paste_key(ctx.message.content)
-        if not paste_keys: return
-        xml = None
-        paste_key = paste_keys[0]
-        try:
-            xml = await self.bot.loop.run_in_executor(None, pastebin.get_as_xml, paste_key)
-        except Exception:
+            paste_url = f"https://pastebin.com/raw/{paste_key}"
+        else:
+            paste_keys = pastebin.fetch_pobb_key(ctx.message.content)
+            print(paste_keys)
+            if not paste_keys:
+                return
+            xml = None
+            paste_key = paste_keys[0]
+            xml = await self.bot.loop.run_in_executor(None, pastebin.get_as_xml_pobb, paste_key)
+            print(xml)
+            paste_url = f"https://pobb.in/pob/{paste_key}"
+        
+        if not xml: 
             return
-        if not xml:
-            return
-        paste_url = f"https://pastebin.com/raw/{paste_key}"
-        raw = await self.bot.loop.run_in_executor(None, pastebin.get_raw_data, paste_url)
-        party_url = None
+
         stats = await self.bot.loop.run_in_executor(None, cache_pob_xml, xml, self.client)
-        await self.make_responsive_embed(stats, ctx, party_url=party_url)
+        await self.make_responsive_embed(stats, ctx, party_url=None)
 
     @commands.command()
     async def convert(self, ctx):

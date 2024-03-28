@@ -100,7 +100,7 @@ class Zana(commands.AutoShardedBot):
                 await self.find_command.invoke(ctx)
             except:
                 await self.report(ctx)
-        elif 'pastebin.com/' in ctx.message.content in ctx.message.content:
+        elif 'pastebin.com/' in ctx.message.content or 'pobb.in' in ctx.message.content:
             if str(ctx.guild.id) in self.server_config.conf and \
                     self.server_config.conf[str(ctx.guild.id)].get('disable_pastebin'):
                 return
