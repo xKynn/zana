@@ -17,3 +17,27 @@ As a college student i can only work on these fun projects in my free time, i wo
   - It fetches all worn gear, jewels and gem links/groups
     - Todo: Flasks
    - <img src="https://github.com/xKynn/zana/blob/master/gifs/build_preview.gif?raw=true" width=60%/>
+
+
+# Selfhosting with Docker
+Requirement:
+- Working Docker installation
+- Discord TOKEN
+- Discord ChannelId to put text into
+
+## How to use
+### Directly via docker
+- docker create --name ....
+
+### Docker-compose
+Make your own docker-compose.yml or use the one included in the repo
+Fill out the TOKEN and DUMP_CHANNEL in the docker-compose.yml
+then run
+- docker-compose create zana
+- docker-compose start zana
+
+To update run the following commands
+- docker-compose stop zana
+- docker-compose pull zana
+- docker-compose create zana
+- docker-compose start zana

@@ -1,0 +1,15 @@
+version: "3.7"
+services:
+  zana:
+    image: konggal/zana
+    container_name: zana
+    networks:
+      # if this is your first time doing docker run the following command to create a docker network else ignore
+      # docker network create internet
+      - internet
+    environment:
+      # https://en.wikipedia.org/wiki/List_of_tz_database_time_zone
+      - TZ=Europe/London
+      - TOKEN=
+      - DUMP_CHANNEL=
+    restart: unless-stopped
